@@ -1,4 +1,3 @@
-import Loader from "@/components/loader";
 import {
 	HeadContent,
 	Outlet,
@@ -6,6 +5,7 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import Loader from "~/components/loader";
 import "../index.css";
 
 export const Route = createRootRouteWithContext()({
