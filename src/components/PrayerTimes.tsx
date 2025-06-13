@@ -5,7 +5,6 @@ import { usePrayerContext } from "../contexts/PrayerContext";
 
 interface PrayerTime {
 	name: string;
-	arabic: string;
 	time: string;
 	icon: React.ReactNode;
 }
@@ -59,6 +58,9 @@ const PrayerTimes: React.FC = () => {
 			return `${hoursLeft.toString().padStart(2, "0")}:${minutesLeft.toString().padStart(2, "0")}:${secondsLeft.toString().padStart(2, "0")}`;
 		};
 
+		// Initialize immediately
+		setTimeLeft(calculateTimeLeft());
+
 		const timer = setInterval(() => {
 			setTimeLeft(calculateTimeLeft());
 		}, 1000);
@@ -69,37 +71,31 @@ const PrayerTimes: React.FC = () => {
 	const prayers: PrayerTime[] = [
 		{
 			name: "Subuh",
-			arabic: "صبح",
 			time: prayerTimes.fajr,
 			icon: <Sunrise size={38} />,
 		},
 		{
 			name: "Syuruq",
-			arabic: "شروق",
 			time: prayerTimes.sunrise,
 			icon: <Sun size={38} />,
 		},
 		{
 			name: "Dzuhur",
-			arabic: "ظهر",
 			time: prayerTimes.dhuhr,
 			icon: <Sun size={38} />,
 		},
 		{
 			name: "Ashar",
-			arabic: "عصر",
 			time: prayerTimes.asr,
 			icon: <Sun size={38} />,
 		},
 		{
 			name: "Maghrib",
-			arabic: "مغرب",
 			time: prayerTimes.maghrib,
 			icon: <Sunset size={38} />,
 		},
 		{
 			name: "Isya",
-			arabic: "عشاء",
 			time: prayerTimes.isha,
 			icon: <Moon size={38} />,
 		},
@@ -121,7 +117,7 @@ const PrayerTimes: React.FC = () => {
 						key={prayer.name}
 						className={`relative rounded-2xl p-6 text-center transition-all duration-500 lg:p-8 ${
 							isCurrentPrayer(prayer.name)
-								? "scale-110 border-4 border-amber-300 bg-amber-500 text-white"
+								? "scale-110 border-4 border-blue-300 bg-blue-500 text-white"
 								: isNextPrayer(prayer.name)
 									? "border-2 border-emerald-300 bg-emerald-500/40 text-white"
 									: "border border-white/30 bg-white/25 text-white"
@@ -150,7 +146,6 @@ const PrayerTimes: React.FC = () => {
 						{/* Prayer name and Arabic text as subtitle */}
 						<div className="flex flex-col items-center gap-2 text-base lg:text-lg xl:text-xl 2xl:text-2xl">
 							<div className="font-bold">{prayer.name}</div>
-							<div className="arabic-text font-light">{prayer.arabic}</div>
 						</div>
 					</div>
 				))}

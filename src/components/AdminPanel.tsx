@@ -1,11 +1,35 @@
-import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
+import {
+	ArrowLeft,
+	Calendar,
+	Clock,
+	Edit2,
+	MapPin,
+	Plus,
+	Save,
+	Trash2,
+} from "lucide-react";
 import type React from "react";
 import { useId, useState } from "react";
-import { usePrayerContext } from "../contexts/PrayerContext";
+import {
+	type Event,
+	type PrayerSettings,
+	usePrayerContext,
+	type Verse,
+} from "../contexts/PrayerContext";
 
 const AdminPanel: React.FC = () => {
-	const { mosqueInfo, announcements, updateMosqueInfo, updateAnnouncements } =
-		usePrayerContext();
+	const {
+		mosqueInfo,
+		announcements,
+		events,
+		verses,
+		prayerSettings,
+		updateMosqueInfo,
+		updateAnnouncements,
+		updateEvents,
+		updateVerses,
+		updatePrayerSettings,
+	} = usePrayerContext();
 	const [activeTab, setActiveTab] = useState("mosque");
 	const [formData, setFormData] = useState(mosqueInfo);
 
@@ -15,8 +39,44 @@ const AdminPanel: React.FC = () => {
 	const addressId = useId();
 	const latitudeId = useId();
 	const longitudeId = useId();
+	const eventTitleId = useId();
+	const eventDateId = useId();
+	const eventTimeId = useId();
+	const eventLocationId = useId();
+	const eventImageId = useId();
+	const eventDescriptionId = useId();
+	const verseArabicId = useId();
+	const verseTranslationId = useId();
+	const verseReferenceId = useId();
+	const methodId = useId();
+	const shafaqId = useId();
+	const tuneId = useId();
+	const schoolId = useId();
+	const midnightModeId = useId();
+	const timezoneId = useId();
 	const [announcementList, setAnnouncementList] = useState(announcements);
 	const [newAnnouncement, setNewAnnouncement] = useState("");
+	const [eventList, setEventList] = useState(events);
+	const [showEventForm, setShowEventForm] = useState(false);
+	const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+	const [eventForm, setEventForm] = useState<Omit<Event, "id">>({
+		title: "",
+		date: "",
+		time: "",
+		location: "",
+		image: "",
+		description: "",
+	});
+	const [verseList, setVerseList] = useState(verses);
+	const [showVerseForm, setShowVerseForm] = useState(false);
+	const [editingVerse, setEditingVerse] = useState<Verse | null>(null);
+	const [verseForm, setVerseForm] = useState<Omit<Verse, "id">>({
+		arabic: "",
+		translation: "",
+		reference: "",
+	});
+	const [prayerSettingsForm, setPrayerSettingsForm] =
+		useState<PrayerSettings>(prayerSettings);
 
 	const handleSaveMosqueInfo = () => {
 		updateMosqueInfo(formData);
@@ -38,6 +98,165 @@ const AdminPanel: React.FC = () => {
 		updateAnnouncements(updated);
 	};
 
+	const handleAddEvent = () => {
+		if (
+			eventForm.title &&
+			eventForm.date &&
+			eventForm.time &&
+			eventForm.location
+		) {
+			const newEvent: Event = {
+				...eventForm,
+				id: Date.now().toString(),
+			};
+			const updated = [...eventList, newEvent];
+			setEventList(updated);
+			updateEvents(updated);
+			setEventForm({
+				title: "",
+				date: "",
+				time: "",
+				location: "",
+				image: "",
+				description: "",
+			});
+			setShowEventForm(false);
+		}
+	};
+
+	const handleEditEvent = (event: Event) => {
+		setEditingEvent(event);
+		setEventForm({
+			title: event.title,
+			date: event.date,
+			time: event.time,
+			location: event.location,
+			image: event.image,
+			description: event.description,
+		});
+		setShowEventForm(true);
+	};
+
+	const handleUpdateEvent = () => {
+		if (
+			editingEvent &&
+			eventForm.title &&
+			eventForm.date &&
+			eventForm.time &&
+			eventForm.location
+		) {
+			const updated = eventList.map((event) =>
+				event.id === editingEvent.id
+					? { ...eventForm, id: editingEvent.id }
+					: event,
+			);
+			setEventList(updated);
+			updateEvents(updated);
+			setEditingEvent(null);
+			setEventForm({
+				title: "",
+				date: "",
+				time: "",
+				location: "",
+				image: "",
+				description: "",
+			});
+			setShowEventForm(false);
+		}
+	};
+
+	const handleDeleteEvent = (id: string) => {
+		const updated = eventList.filter((event) => event.id !== id);
+		setEventList(updated);
+		updateEvents(updated);
+	};
+
+	const handleCancelEventForm = () => {
+		setShowEventForm(false);
+		setEditingEvent(null);
+		setEventForm({
+			title: "",
+			date: "",
+			time: "",
+			location: "",
+			image: "",
+			description: "",
+		});
+	};
+
+	const handleAddVerse = () => {
+		if (verseForm.arabic && verseForm.translation && verseForm.reference) {
+			const newVerse: Verse = {
+				...verseForm,
+				id: Date.now().toString(),
+			};
+			const updated = [...verseList, newVerse];
+			setVerseList(updated);
+			updateVerses(updated);
+			setVerseForm({
+				arabic: "",
+				translation: "",
+				reference: "",
+			});
+			setShowVerseForm(false);
+		}
+	};
+
+	const handleEditVerse = (verse: Verse) => {
+		setEditingVerse(verse);
+		setVerseForm({
+			arabic: verse.arabic,
+			translation: verse.translation,
+			reference: verse.reference,
+		});
+		setShowVerseForm(true);
+	};
+
+	const handleUpdateVerse = () => {
+		if (
+			editingVerse &&
+			verseForm.arabic &&
+			verseForm.translation &&
+			verseForm.reference
+		) {
+			const updated = verseList.map((verse) =>
+				verse.id === editingVerse.id
+					? { ...verseForm, id: editingVerse.id }
+					: verse,
+			);
+			setVerseList(updated);
+			updateVerses(updated);
+			setEditingVerse(null);
+			setVerseForm({
+				arabic: "",
+				translation: "",
+				reference: "",
+			});
+			setShowVerseForm(false);
+		}
+	};
+
+	const handleDeleteVerse = (id: string) => {
+		const updated = verseList.filter((verse) => verse.id !== id);
+		setVerseList(updated);
+		updateVerses(updated);
+	};
+
+	const handleCancelVerseForm = () => {
+		setShowVerseForm(false);
+		setEditingVerse(null);
+		setVerseForm({
+			arabic: "",
+			translation: "",
+			reference: "",
+		});
+	};
+
+	const handleSavePrayerSettings = () => {
+		updatePrayerSettings(prayerSettingsForm);
+		alert("Pengaturan waktu shalat berhasil diperbarui!");
+	};
+
 	return (
 		<div className="min-h-screen bg-gray-100">
 			{/* Header */}
@@ -53,9 +272,8 @@ const AdminPanel: React.FC = () => {
 								className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
 							>
 								<ArrowLeft size={20} />
-								Kembali ke Tampilan
 							</button>
-							<h1 className="font-bold text-2xl text-gray-900">Panel Admin</h1>
+							<h1 className="font-bold text-2xl text-gray-900">Pengaturan</h1>
 						</div>
 					</div>
 				</div>
@@ -87,6 +305,39 @@ const AdminPanel: React.FC = () => {
 								}`}
 							>
 								Pengumuman
+							</button>
+							<button
+								type="button"
+								onClick={() => setActiveTab("events")}
+								className={`border-b-2 px-6 py-4 font-medium text-sm ${
+									activeTab === "events"
+										? "border-emerald-500 text-emerald-600"
+										: "border-transparent text-gray-500 hover:text-gray-700"
+								}`}
+							>
+								Acara Komunitas
+							</button>
+							<button
+								type="button"
+								onClick={() => setActiveTab("verses")}
+								className={`border-b-2 px-6 py-4 font-medium text-sm ${
+									activeTab === "verses"
+										? "border-emerald-500 text-emerald-600"
+										: "border-transparent text-gray-500 hover:text-gray-700"
+								}`}
+							>
+								Ayat Al-Quran
+							</button>
+							<button
+								type="button"
+								onClick={() => setActiveTab("prayer-settings")}
+								className={`border-b-2 px-6 py-4 font-medium text-sm ${
+									activeTab === "prayer-settings"
+										? "border-emerald-500 text-emerald-600"
+										: "border-transparent text-gray-500 hover:text-gray-700"
+								}`}
+							>
+								Pengaturan Shalat
 							</button>
 							<button
 								type="button"
@@ -266,6 +517,604 @@ const AdminPanel: React.FC = () => {
 										</div>
 									)}
 								</div>
+							</div>
+						)}
+
+						{activeTab === "events" && (
+							<div className="space-y-6">
+								<div className="flex items-center justify-between">
+									<h2 className="font-semibold text-gray-900 text-xl">
+										Kelola Acara Komunitas
+									</h2>
+									<button
+										type="button"
+										onClick={() => setShowEventForm(true)}
+										className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
+									>
+										<Plus size={16} />
+										Tambah Acara
+									</button>
+								</div>
+
+								{showEventForm && (
+									<div className="rounded-lg bg-gray-50 p-6">
+										<h3 className="mb-4 font-medium text-gray-900 text-lg">
+											{editingEvent ? "Edit Acara" : "Tambah Acara Baru"}
+										</h3>
+
+										<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+											<div>
+												<label
+													htmlFor={eventTitleId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													Judul Acara
+												</label>
+												<input
+													id={eventTitleId}
+													type="text"
+													value={eventForm.title}
+													onChange={(e) =>
+														setEventForm({
+															...eventForm,
+															title: e.target.value,
+														})
+													}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="Masukkan judul acara"
+												/>
+											</div>
+
+											<div>
+												<label
+													htmlFor={eventDateId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													Tanggal
+												</label>
+												<input
+													id={eventDateId}
+													type="text"
+													value={eventForm.date}
+													onChange={(e) =>
+														setEventForm({ ...eventForm, date: e.target.value })
+													}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="Contoh: Setiap Kamis"
+												/>
+											</div>
+
+											<div>
+												<label
+													htmlFor={eventTimeId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													Waktu
+												</label>
+												<input
+													id={eventTimeId}
+													type="text"
+													value={eventForm.time}
+													onChange={(e) =>
+														setEventForm({ ...eventForm, time: e.target.value })
+													}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="Contoh: Ba'da Maghrib"
+												/>
+											</div>
+
+											<div>
+												<label
+													htmlFor={eventLocationId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													Lokasi
+												</label>
+												<input
+													id={eventLocationId}
+													type="text"
+													value={eventForm.location}
+													onChange={(e) =>
+														setEventForm({
+															...eventForm,
+															location: e.target.value,
+														})
+													}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="Contoh: Ruang Utama Masjid"
+												/>
+											</div>
+
+											<div className="md:col-span-2">
+												<label
+													htmlFor={eventImageId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													URL Gambar
+												</label>
+												<input
+													id={eventImageId}
+													type="url"
+													value={eventForm.image}
+													onChange={(e) =>
+														setEventForm({
+															...eventForm,
+															image: e.target.value,
+														})
+													}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="https://example.com/image.jpg"
+												/>
+											</div>
+
+											<div className="md:col-span-2">
+												<label
+													htmlFor={eventDescriptionId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													Deskripsi
+												</label>
+												<textarea
+													id={eventDescriptionId}
+													value={eventForm.description}
+													onChange={(e) =>
+														setEventForm({
+															...eventForm,
+															description: e.target.value,
+														})
+													}
+													rows={3}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="Deskripsi singkat tentang acara"
+												/>
+											</div>
+										</div>
+
+										<div className="mt-6 flex gap-3">
+											<button
+												type="button"
+												onClick={
+													editingEvent ? handleUpdateEvent : handleAddEvent
+												}
+												className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
+											>
+												<Save size={16} />
+												{editingEvent ? "Update Acara" : "Simpan Acara"}
+											</button>
+											<button
+												type="button"
+												onClick={handleCancelEventForm}
+												className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
+											>
+												Batal
+											</button>
+										</div>
+									</div>
+								)}
+
+								<div className="space-y-4">
+									{eventList.map((event) => (
+										<div
+											key={event.id}
+											className="flex gap-4 rounded-lg bg-gray-50 p-4"
+										>
+											{event.image && (
+												<img
+													src={event.image}
+													alt={event.title}
+													className="h-20 w-20 rounded-lg object-cover"
+												/>
+											)}
+
+											<div className="flex-1">
+												<h4 className="font-medium text-gray-900">
+													{event.title}
+												</h4>
+												<div className="mt-2 space-y-1 text-gray-600 text-sm">
+													<div className="flex items-center gap-2">
+														<Calendar size={14} />
+														<span>{event.date}</span>
+													</div>
+													<div className="flex items-center gap-2">
+														<Clock size={14} />
+														<span>{event.time}</span>
+													</div>
+													<div className="flex items-center gap-2">
+														<MapPin size={14} />
+														<span>{event.location}</span>
+													</div>
+												</div>
+												{event.description && (
+													<p className="mt-2 text-gray-600 text-sm">
+														{event.description}
+													</p>
+												)}
+											</div>
+
+											<div className="flex gap-2">
+												<button
+													type="button"
+													onClick={() => handleEditEvent(event)}
+													className="text-emerald-600 transition-colors hover:text-emerald-800"
+												>
+													<Edit2 size={16} />
+												</button>
+												<button
+													type="button"
+													onClick={() => handleDeleteEvent(event.id)}
+													className="text-red-600 transition-colors hover:text-red-800"
+												>
+													<Trash2 size={16} />
+												</button>
+											</div>
+										</div>
+									))}
+
+									{eventList.length === 0 && (
+										<div className="py-8 text-center text-gray-500">
+											Belum ada acara komunitas. Tambahkan acara di atas.
+										</div>
+									)}
+								</div>
+							</div>
+						)}
+
+						{activeTab === "verses" && (
+							<div className="space-y-6">
+								<div className="flex items-center justify-between">
+									<h2 className="font-semibold text-gray-900 text-xl">
+										Kelola Ayat Al-Quran
+									</h2>
+									<button
+										type="button"
+										onClick={() => setShowVerseForm(true)}
+										className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
+									>
+										<Plus size={16} />
+										Tambah Ayat
+									</button>
+								</div>
+
+								{showVerseForm && (
+									<div className="rounded-lg bg-gray-50 p-6">
+										<h3 className="mb-4 font-medium text-gray-900 text-lg">
+											{editingVerse ? "Edit Ayat" : "Tambah Ayat Baru"}
+										</h3>
+
+										<div className="space-y-4">
+											<div>
+												<label
+													htmlFor={verseArabicId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													Teks Arab
+												</label>
+												<textarea
+													id={verseArabicId}
+													value={verseForm.arabic}
+													onChange={(e) =>
+														setVerseForm({
+															...verseForm,
+															arabic: e.target.value,
+														})
+													}
+													rows={3}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="النص العربي للآية"
+													dir="rtl"
+												/>
+											</div>
+
+											<div>
+												<label
+													htmlFor={verseTranslationId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													Terjemahan
+												</label>
+												<textarea
+													id={verseTranslationId}
+													value={verseForm.translation}
+													onChange={(e) =>
+														setVerseForm({
+															...verseForm,
+															translation: e.target.value,
+														})
+													}
+													rows={3}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="Terjemahan ayat dalam bahasa Indonesia"
+												/>
+											</div>
+
+											<div>
+												<label
+													htmlFor={verseReferenceId}
+													className="mb-2 block font-medium text-gray-700 text-sm"
+												>
+													Referensi
+												</label>
+												<input
+													id={verseReferenceId}
+													type="text"
+													value={verseForm.reference}
+													onChange={(e) =>
+														setVerseForm({
+															...verseForm,
+															reference: e.target.value,
+														})
+													}
+													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+													placeholder="Contoh: Al-Baqarah 2:43"
+												/>
+											</div>
+										</div>
+
+										<div className="mt-6 flex gap-3">
+											<button
+												type="button"
+												onClick={
+													editingVerse ? handleUpdateVerse : handleAddVerse
+												}
+												className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
+											>
+												<Save size={16} />
+												{editingVerse ? "Update Ayat" : "Simpan Ayat"}
+											</button>
+											<button
+												type="button"
+												onClick={handleCancelVerseForm}
+												className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
+											>
+												Batal
+											</button>
+										</div>
+									</div>
+								)}
+
+								<div className="space-y-4">
+									{verseList.map((verse) => (
+										<div key={verse.id} className="rounded-lg bg-gray-50 p-6">
+											<div className="mb-4">
+												<div className="arabic-text mb-3 text-right font-light text-gray-800 text-lg leading-relaxed">
+													{verse.arabic}
+												</div>
+												<div className="mb-2 text-gray-700 italic">
+													"{verse.translation}"
+												</div>
+												<div className="font-medium text-emerald-600 text-sm">
+													— {verse.reference}
+												</div>
+											</div>
+
+											<div className="flex justify-end gap-2">
+												<button
+													type="button"
+													onClick={() => handleEditVerse(verse)}
+													className="text-emerald-600 transition-colors hover:text-emerald-800"
+												>
+													<Edit2 size={16} />
+												</button>
+												<button
+													type="button"
+													onClick={() => handleDeleteVerse(verse.id)}
+													className="text-red-600 transition-colors hover:text-red-800"
+												>
+													<Trash2 size={16} />
+												</button>
+											</div>
+										</div>
+									))}
+
+									{verseList.length === 0 && (
+										<div className="py-8 text-center text-gray-500">
+											Belum ada ayat Al-Quran. Tambahkan ayat di atas.
+										</div>
+									)}
+								</div>
+							</div>
+						)}
+
+						{activeTab === "prayer-settings" && (
+							<div className="space-y-6">
+								<h2 className="font-semibold text-gray-900 text-xl">
+									Pengaturan Waktu Shalat
+								</h2>
+								<p className="text-gray-600 text-sm">
+									Konfigurasi metode perhitungan waktu shalat menggunakan
+									parameter API Aladhan
+								</p>
+
+								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+									<div>
+										<label
+											htmlFor={methodId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Metode Perhitungan
+										</label>
+										<select
+											id={methodId}
+											value={prayerSettingsForm.method}
+											onChange={(e) =>
+												setPrayerSettingsForm({
+													...prayerSettingsForm,
+													method: Number(e.target.value),
+												})
+											}
+											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+										>
+											<option value={1}>
+												University of Islamic Sciences, Karachi
+											</option>
+											<option value={2}>
+												Islamic Society of North America
+											</option>
+											<option value={3}>Muslim World League</option>
+											<option value={4}>Umm Al-Qura University, Makkah</option>
+											<option value={5}>
+												Egyptian General Authority of Survey
+											</option>
+											<option value={7}>
+												Institute of Geophysics, University of Tehran
+											</option>
+											<option value={8}>Gulf Region</option>
+											<option value={9}>Kuwait</option>
+											<option value={10}>Qatar</option>
+											<option value={11}>
+												Majlis Ugama Islam Singapura, Singapore
+											</option>
+											<option value={12}>
+												Union Organization islamic de France
+											</option>
+											<option value={13}>
+												Diyanet İşleri Başkanlığı, Turkey
+											</option>
+											<option value={14}>
+												Spiritual Administration of Muslims of Russia
+											</option>
+											<option value={15}>
+												Moonsighting Committee Worldwide
+											</option>
+											<option value={16}>Dubai (unofficial)</option>
+											<option value={20}>Custom (Kementerian Agama RI)</option>
+										</select>
+									</div>
+
+									<div>
+										<label
+											htmlFor={shafaqId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Shafaq (untuk Isya)
+										</label>
+										<select
+											id={shafaqId}
+											value={prayerSettingsForm.shafaq}
+											onChange={(e) =>
+												setPrayerSettingsForm({
+													...prayerSettingsForm,
+													shafaq: e.target.value,
+												})
+											}
+											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+										>
+											<option value="general">General</option>
+											<option value="red">Red</option>
+											<option value="white">White</option>
+										</select>
+									</div>
+
+									<div>
+										<label
+											htmlFor={schoolId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Mazhab (untuk Ashar)
+										</label>
+										<select
+											id={schoolId}
+											value={prayerSettingsForm.school}
+											onChange={(e) =>
+												setPrayerSettingsForm({
+													...prayerSettingsForm,
+													school: Number(e.target.value),
+												})
+											}
+											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+										>
+											<option value={0}>Shafi</option>
+											<option value={1}>Hanafi</option>
+										</select>
+									</div>
+
+									<div>
+										<label
+											htmlFor={midnightModeId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Mode Tengah Malam
+										</label>
+										<select
+											id={midnightModeId}
+											value={prayerSettingsForm.midnightMode}
+											onChange={(e) =>
+												setPrayerSettingsForm({
+													...prayerSettingsForm,
+													midnightMode: Number(e.target.value),
+												})
+											}
+											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+										>
+											<option value={0}>
+												Standard (Mid Sunset to Sunrise)
+											</option>
+											<option value={1}>Jafari (Mid Sunset to Fajr)</option>
+										</select>
+									</div>
+
+									<div>
+										<label
+											htmlFor={timezoneId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Zona Waktu
+										</label>
+										<select
+											id={timezoneId}
+											value={prayerSettingsForm.timezonestring}
+											onChange={(e) =>
+												setPrayerSettingsForm({
+													...prayerSettingsForm,
+													timezonestring: e.target.value,
+												})
+											}
+											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+										>
+											<option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
+											<option value="Asia/Makassar">
+												WITA (Asia/Makassar)
+											</option>
+											<option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
+										</select>
+									</div>
+
+									<div className="md:col-span-2">
+										<label
+											htmlFor={tuneId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Penyesuaian Waktu (Tune)
+										</label>
+										<input
+											id={tuneId}
+											type="text"
+											value={prayerSettingsForm.tune}
+											onChange={(e) =>
+												setPrayerSettingsForm({
+													...prayerSettingsForm,
+													tune: e.target.value,
+												})
+											}
+											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+											placeholder="36,36,23,-2,-8,-29,-29,-31,0"
+										/>
+										<p className="mt-1 text-gray-500 text-xs">
+											Format:
+											Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Isha,Midnight,Sunset
+											(dalam menit, pisahkan dengan koma)
+										</p>
+									</div>
+								</div>
+
+								<button
+									type="button"
+									onClick={handleSavePrayerSettings}
+									className="flex items-center gap-2 rounded-md bg-emerald-600 px-6 py-2 text-white transition-colors hover:bg-emerald-700"
+								>
+									<Save size={16} />
+									Simpan Pengaturan Shalat
+								</button>
 							</div>
 						)}
 

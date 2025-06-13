@@ -1,7 +1,8 @@
+import { defaultPrayerTimes } from "~/contexts/PrayerContext";
+
 interface AladhanResponse {
 	data: {
 		timings: {
-			Imsak: string;
 			Fajr: string;
 			Sunrise: string;
 			Dhuhr: string;
@@ -12,11 +13,50 @@ interface AladhanResponse {
 	};
 }
 
-export const getPrayerTimes = async (latitude: number, longitude: number) => {
+interface PrayerSettings {
+	method: number;
+	shafaq: string;
+	tune: string;
+	school: number;
+	midnightMode: number;
+	timezonestring: string;
+}
+
+export const getPrayerTimes = async (
+	latitude: number,
+	longitude: number,
+	settings?: PrayerSettings,
+) => {
 	try {
-		const response = await fetch(
-			`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=20&timezonestring=Asia%2FJakarta`,
-		);
+		// Use provided settings or defaults
+		const config = settings || {
+			method: 20,
+			shafaq: "general",
+			tune: "10,10,-1,1,2,3,3,2,0",
+			school: 0,
+			midnightMode: 0,
+			timezonestring: "Asia/Jakarta",
+		};
+
+		// Get current date for the API call
+		const now = new Date();
+		const dateStr = now.toISOString().split("T")[0]; // YYYY-MM-DD format
+
+		// Build URL with all configurable parameters
+		const params = new URLSearchParams({
+			latitude: latitude.toString(),
+			longitude: longitude.toString(),
+			method: config.method.toString(),
+			shafaq: config.shafaq,
+			tune: config.tune,
+			school: config.school.toString(),
+			midnightMode: config.midnightMode.toString(),
+			timezonestring: config.timezonestring,
+		});
+
+		const url = `https://api.aladhan.com/v1/timings/${dateStr}?${params.toString()}`;
+
+		const response = await fetch(url);
 
 		if (!response.ok) {
 			throw new Error("Failed to fetch prayer times");
@@ -26,7 +66,6 @@ export const getPrayerTimes = async (latitude: number, longitude: number) => {
 		const timings = data.data.timings;
 
 		return {
-			imsak: formatTime(timings.Imsak),
 			fajr: formatTime(timings.Fajr),
 			sunrise: formatTime(timings.Sunrise),
 			dhuhr: formatTime(timings.Dhuhr),
@@ -38,15 +77,7 @@ export const getPrayerTimes = async (latitude: number, longitude: number) => {
 		console.error("Error fetching prayer times:", error);
 
 		// Return default times if API fails
-		return {
-			imsak: "04:16",
-			fajr: "04:26",
-			sunrise: "05:50",
-			dhuhr: "12:03",
-			asr: "15:03",
-			maghrib: "17:58",
-			isha: "18:59",
-		};
+		return defaultPrayerTimes;
 	}
 };
 
