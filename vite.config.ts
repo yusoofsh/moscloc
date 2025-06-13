@@ -1,21 +1,21 @@
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import tanstackRouter from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { VitePWA } from "vite-plugin-pwa";
+import { VitePWA as pwa } from "vite-plugin-pwa";
 
 export default defineConfig({
 	plugins: [
-		tailwindcss(),
-		TanStackRouterVite({}),
 		react(),
-		VitePWA({
+		tailwindcss(),
+		tanstackRouter(),
+		pwa({
 			registerType: "autoUpdate",
 			manifest: {
-				name: "moscloc",
+				name: "Moscloc",
 				short_name: "moscloc",
-				description: "moscloc - PWA Application",
+				description: "Moscloc - PWA Application",
 				theme_color: "#0c0c0c",
 			},
 			pwaAssets: {
