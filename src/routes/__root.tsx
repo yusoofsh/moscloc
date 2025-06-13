@@ -1,11 +1,11 @@
 import {
-	HeadContent,
-	Outlet,
 	createRootRouteWithContext,
+	Outlet,
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import Loader from "~/components/loader";
+import Loader from "~/components/Loader";
+import { PrayerProvider } from "~/contexts/PrayerContext";
 import "../index.css";
 
 export const Route = createRootRouteWithContext()({
@@ -36,9 +36,14 @@ function RootComponent() {
 
 	return (
 		<>
-			<HeadContent />
-			<div className="grid h-svh grid-rows-[auto_1fr]">
-				{isFetching ? <Loader /> : <Outlet />}
+			<div className="min-h-screen bg-gray-900">
+				{isFetching ? (
+					<Loader />
+				) : (
+					<PrayerProvider>
+						<Outlet />
+					</PrayerProvider>
+				)}
 			</div>
 			<TanStackRouterDevtools position="bottom-left" />
 		</>
