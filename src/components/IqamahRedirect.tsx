@@ -1,28 +1,27 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { usePrayerContext } from "../contexts/PrayerContext";
+import { useNavigate } from "@tanstack/react-router"
+import { useEffect, useState } from "react"
+import { usePrayerContext } from "../contexts/PrayerContext"
 
 interface IqamahRedirectProps {
-	autoRedirect?: boolean;
-	redirectDelaySeconds?: number;
+	autoRedirect?: boolean
+	redirectDelaySeconds?: number
 }
 
 const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 	autoRedirect = true,
 	redirectDelaySeconds = 5,
 }) => {
-	const { prayerTimes, iqamahIntervals } = usePrayerContext();
-	const navigate = useNavigate();
-	const [showRedirectCountdown, setShowRedirectCountdown] = useState(false);
-	const [countdownSeconds, setCountdownSeconds] =
-		useState(redirectDelaySeconds);
+	const { prayerTimes, iqamahIntervals } = usePrayerContext()
+	const navigate = useNavigate()
+	const [showRedirectCountdown, setShowRedirectCountdown] = useState(false)
+	const [countdownSeconds, setCountdownSeconds] = useState(redirectDelaySeconds)
 
 	useEffect(() => {
-		if (!autoRedirect) return;
+		if (!autoRedirect) return
 
 		const checkForIqamahTime = () => {
-			const now = new Date();
-			const currentTime = now.getHours() * 60 + now.getMinutes();
+			const now = new Date()
+			const currentTime = now.getHours() * 60 + now.getMinutes()
 
 			const prayerSchedule = [
 				{ name: "Subuh", time: prayerTimes.fajr, intervalKey: "fajr" as const },
@@ -38,54 +37,54 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 					intervalKey: "maghrib" as const,
 				},
 				{ name: "Isya", time: prayerTimes.isha, intervalKey: "isha" as const },
-			];
+			]
 
 			for (const prayer of prayerSchedule) {
-				const [hours, minutes] = prayer.time.split(":").map(Number);
-				const prayerMinutes = hours * 60 + minutes;
-				const interval = iqamahIntervals[prayer.intervalKey];
-				const iqamahMinutes = prayerMinutes + interval;
+				const [hours, minutes] = prayer.time.split(":").map(Number)
+				const prayerMinutes = hours * 60 + minutes
+				const interval = iqamahIntervals[prayer.intervalKey]
+				const iqamahMinutes = prayerMinutes + interval
 
 				// Check if we're within 30 seconds before iqamah time
 				const secondsUntilIqamah =
-					(iqamahMinutes - currentTime) * 60 - now.getSeconds();
+					(iqamahMinutes - currentTime) * 60 - now.getSeconds()
 
 				if (
 					secondsUntilIqamah <= redirectDelaySeconds &&
 					secondsUntilIqamah > 0
 				) {
-					setShowRedirectCountdown(true);
-					setCountdownSeconds(Math.ceil(secondsUntilIqamah));
-					return;
+					setShowRedirectCountdown(true)
+					setCountdownSeconds(Math.ceil(secondsUntilIqamah))
+					return
 				}
 			}
 
-			setShowRedirectCountdown(false);
-		};
+			setShowRedirectCountdown(false)
+		}
 
-		checkForIqamahTime();
-		const interval = setInterval(checkForIqamahTime, 1000);
+		checkForIqamahTime()
+		const interval = setInterval(checkForIqamahTime, 1000)
 
-		return () => clearInterval(interval);
-	}, [prayerTimes, iqamahIntervals, autoRedirect, redirectDelaySeconds]);
+		return () => clearInterval(interval)
+	}, [prayerTimes, iqamahIntervals, autoRedirect, redirectDelaySeconds])
 
 	useEffect(() => {
-		if (!showRedirectCountdown) return;
+		if (!showRedirectCountdown) return
 
 		const countdownInterval = setInterval(() => {
 			setCountdownSeconds((prev) => {
 				if (prev <= 1) {
-					navigate({ to: "/iqamah" });
-					return 0;
+					navigate({ to: "/iqamah" })
+					return 0
 				}
-				return prev - 1;
-			});
-		}, 1000);
+				return prev - 1
+			})
+		}, 1000)
 
-		return () => clearInterval(countdownInterval);
-	}, [showRedirectCountdown, navigate]);
+		return () => clearInterval(countdownInterval)
+	}, [showRedirectCountdown, navigate])
 
-	if (!showRedirectCountdown) return null;
+	if (!showRedirectCountdown) return null
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
@@ -113,7 +112,7 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 				</button>
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default IqamahRedirect;
+export default IqamahRedirect

@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import IqamahCountdown from "~/components/IqamahCountdown";
+import { createFileRoute } from "@tanstack/react-router"
+import IqamahCountdown from "~/components/IqamahCountdown"
 
 export const Route = createFileRoute("/iqamah")({
 	component: RouteComponent,
@@ -14,8 +14,8 @@ export const Route = createFileRoute("/iqamah")({
 			},
 		],
 	}),
-});
+})
 
 function RouteComponent() {
-	return <IqamahCountdown />;
+	return <IqamahCountdown />
 }

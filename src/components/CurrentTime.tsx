@@ -1,18 +1,18 @@
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
-import type React from "react";
-import { useEffect, useState } from "react";
+import { format } from "date-fns"
+import { id } from "date-fns/locale"
+import type React from "react"
+import { useEffect, useState } from "react"
 
 const CurrentTime: React.FC = () => {
-	const [currentTime, setCurrentTime] = useState(new Date());
+	const [currentTime, setCurrentTime] = useState(new Date())
 
 	useEffect(() => {
 		const timer = setInterval(() => {
-			setCurrentTime(new Date());
-		}, 1000);
+			setCurrentTime(new Date())
+		}, 1000)
 
-		return () => clearInterval(timer);
-	}, []);
+		return () => clearInterval(timer)
+	}, [])
 
 	return (
 		<div className="text-right">
@@ -23,7 +23,7 @@ const CurrentTime: React.FC = () => {
 				{format(currentTime, "EEEE, dd MMMM yyyy", { locale: id })}
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default CurrentTime;
+export default CurrentTime

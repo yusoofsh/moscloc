@@ -1,22 +1,22 @@
-import type React from "react";
-import { useEffect, useState } from "react";
-import { usePrayerContext } from "../contexts/PrayerContext";
+import type React from "react"
+import { useEffect, useState } from "react"
+import { usePrayerContext } from "../contexts/PrayerContext"
 
 const QuranVerseCard: React.FC = () => {
-	const { verses } = usePrayerContext();
-	const [currentIndex, setCurrentIndex] = useState(0);
+	const { verses } = usePrayerContext()
+	const [currentIndex, setCurrentIndex] = useState(0)
 
 	useEffect(() => {
-		if (verses.length === 0) return;
+		if (verses.length === 0) return
 
 		const interval = setInterval(() => {
 			setCurrentIndex((prevIndex) =>
 				prevIndex === verses.length - 1 ? 0 : prevIndex + 1,
-			);
-		}, 8000);
+			)
+		}, 8000)
 
-		return () => clearInterval(interval);
-	}, [verses.length]);
+		return () => clearInterval(interval)
+	}, [verses.length])
 
 	// If no verses, show a placeholder
 	if (verses.length === 0) {
@@ -33,7 +33,7 @@ const QuranVerseCard: React.FC = () => {
 					</div>
 				</div>
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -84,7 +84,7 @@ const QuranVerseCard: React.FC = () => {
 				</div>
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default QuranVerseCard;
+export default QuranVerseCard

@@ -1,32 +1,32 @@
-import { Moon, Sun, Sunrise, Sunset } from "lucide-react";
-import type React from "react";
-import { useEffect, useState } from "react";
-import { usePrayerContext } from "../contexts/PrayerContext";
+import { Moon, Sun, Sunrise, Sunset } from "lucide-react"
+import type React from "react"
+import { useEffect, useState } from "react"
+import { usePrayerContext } from "../contexts/PrayerContext"
 
 interface PrayerTime {
-	name: string;
-	time: string;
-	icon: React.ReactNode;
+	name: string
+	time: string
+	icon: React.ReactNode
 }
 
 const PrayerTimes: React.FC = () => {
-	const { prayerTimes, currentPrayer, nextPrayer } = usePrayerContext();
-	const [_currentTime, setCurrentTime] = useState(new Date());
-	const [timeLeft, setTimeLeft] = useState("");
+	const { prayerTimes, currentPrayer, nextPrayer } = usePrayerContext()
+	const [_currentTime, setCurrentTime] = useState(new Date())
+	const [timeLeft, setTimeLeft] = useState("")
 
 	useEffect(() => {
 		const timer = setInterval(() => {
-			setCurrentTime(new Date());
-		}, 1000);
+			setCurrentTime(new Date())
+		}, 1000)
 
-		return () => clearInterval(timer);
-	}, []);
+		return () => clearInterval(timer)
+	}, [])
 
 	useEffect(() => {
 		const calculateTimeLeft = () => {
-			if (!nextPrayer) return "";
+			if (!nextPrayer) return ""
 
-			const now = new Date();
+			const now = new Date()
 			const prayerTimeMap: { [key: string]: string } = {
 				fajr: prayerTimes.fajr,
 				sunrise: prayerTimes.sunrise,
@@ -34,39 +34,39 @@ const PrayerTimes: React.FC = () => {
 				asr: prayerTimes.asr,
 				maghrib: prayerTimes.maghrib,
 				isha: prayerTimes.isha,
-			};
+			}
 
-			const nextPrayerTime = prayerTimeMap[nextPrayer.toLowerCase()];
-			if (!nextPrayerTime) return "";
+			const nextPrayerTime = prayerTimeMap[nextPrayer.toLowerCase()]
+			if (!nextPrayerTime) return ""
 
-			const [hours, minutes] = nextPrayerTime.split(":").map(Number);
-			const nextPrayerDate = new Date();
-			nextPrayerDate.setHours(hours, minutes, 0, 0);
+			const [hours, minutes] = nextPrayerTime.split(":").map(Number)
+			const nextPrayerDate = new Date()
+			nextPrayerDate.setHours(hours, minutes, 0, 0)
 
 			// If prayer time has passed today, set it for tomorrow
 			if (nextPrayerDate <= now) {
-				nextPrayerDate.setDate(nextPrayerDate.getDate() + 1);
+				nextPrayerDate.setDate(nextPrayerDate.getDate() + 1)
 			}
 
-			const timeDiff = nextPrayerDate.getTime() - now.getTime();
-			const hoursLeft = Math.floor(timeDiff / (1000 * 60 * 60));
+			const timeDiff = nextPrayerDate.getTime() - now.getTime()
+			const hoursLeft = Math.floor(timeDiff / (1000 * 60 * 60))
 			const minutesLeft = Math.floor(
 				(timeDiff % (1000 * 60 * 60)) / (1000 * 60),
-			);
-			const secondsLeft = Math.floor((timeDiff % (1000 * 60)) / 1000);
+			)
+			const secondsLeft = Math.floor((timeDiff % (1000 * 60)) / 1000)
 
-			return `${hoursLeft.toString().padStart(2, "0")}:${minutesLeft.toString().padStart(2, "0")}:${secondsLeft.toString().padStart(2, "0")}`;
-		};
+			return `${hoursLeft.toString().padStart(2, "0")}:${minutesLeft.toString().padStart(2, "0")}:${secondsLeft.toString().padStart(2, "0")}`
+		}
 
 		// Initialize immediately
-		setTimeLeft(calculateTimeLeft());
+		setTimeLeft(calculateTimeLeft())
 
 		const timer = setInterval(() => {
-			setTimeLeft(calculateTimeLeft());
-		}, 1000);
+			setTimeLeft(calculateTimeLeft())
+		}, 1000)
 
-		return () => clearInterval(timer);
-	}, [nextPrayer, prayerTimes]);
+		return () => clearInterval(timer)
+	}, [nextPrayer, prayerTimes])
 
 	const prayers: PrayerTime[] = [
 		{
@@ -99,15 +99,15 @@ const PrayerTimes: React.FC = () => {
 			time: prayerTimes.isha,
 			icon: <Moon size={38} />,
 		},
-	];
+	]
 
 	const isCurrentPrayer = (prayerName: string) => {
-		return currentPrayer?.toLowerCase() === prayerName.toLowerCase();
-	};
+		return currentPrayer?.toLowerCase() === prayerName.toLowerCase()
+	}
 
 	const isNextPrayer = (prayerName: string) => {
-		return nextPrayer?.toLowerCase() === prayerName.toLowerCase();
-	};
+		return nextPrayer?.toLowerCase() === prayerName.toLowerCase()
+	}
 
 	return (
 		<div className="rounded-3xl border border-white/20 bg-white/15 p-8 backdrop-blur-md lg:p-12">
@@ -151,7 +151,7 @@ const PrayerTimes: React.FC = () => {
 				))}
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default PrayerTimes;
+export default PrayerTimes

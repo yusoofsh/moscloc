@@ -2,11 +2,11 @@ import {
 	createRootRouteWithContext,
 	Outlet,
 	useRouterState,
-} from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import Loader from "~/components/Loader";
-import { PrayerProvider } from "~/contexts/PrayerContext";
-import "../index.css";
+} from "@tanstack/react-router"
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
+import Loader from "~/components/Loader"
+import { PrayerProvider } from "~/contexts/PrayerContext"
+import "../index.css"
 
 export const Route = createRootRouteWithContext()({
 	component: RootComponent,
@@ -27,12 +27,12 @@ export const Route = createRootRouteWithContext()({
 			},
 		],
 	}),
-});
+})
 
 function RootComponent() {
 	const isFetching = useRouterState({
 		select: (s) => s.isLoading,
-	});
+	})
 
 	return (
 		<>
@@ -47,5 +47,5 @@ function RootComponent() {
 			</div>
 			<TanStackRouterDevtools position="bottom-left" />
 		</>
-	);
+	)
 }

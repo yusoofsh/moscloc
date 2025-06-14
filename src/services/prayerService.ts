@@ -1,25 +1,25 @@
-import { defaultPrayerTimes } from "~/contexts/PrayerContext";
+import { defaultPrayerTimes } from "~/contexts/PrayerContext"
 
 interface AladhanResponse {
 	data: {
 		timings: {
-			Fajr: string;
-			Sunrise: string;
-			Dhuhr: string;
-			Asr: string;
-			Maghrib: string;
-			Isha: string;
-		};
-	};
+			Fajr: string
+			Sunrise: string
+			Dhuhr: string
+			Asr: string
+			Maghrib: string
+			Isha: string
+		}
+	}
 }
 
 interface PrayerSettings {
-	method: number;
-	shafaq: string;
-	tune: string;
-	school: number;
-	midnightMode: number;
-	timezonestring: string;
+	method: number
+	shafaq: string
+	tune: string
+	school: number
+	midnightMode: number
+	timezonestring: string
 }
 
 export const getPrayerTimes = async (
@@ -36,11 +36,11 @@ export const getPrayerTimes = async (
 			school: 0,
 			midnightMode: 0,
 			timezonestring: "Asia/Jakarta",
-		};
+		}
 
 		// Get current date for the API call
-		const now = new Date();
-		const dateStr = now.toISOString().split("T")[0]; // YYYY-MM-DD format
+		const now = new Date()
+		const dateStr = now.toISOString().split("T")[0] // YYYY-MM-DD format
 
 		// Build URL with all configurable parameters
 		const params = new URLSearchParams({
@@ -52,18 +52,18 @@ export const getPrayerTimes = async (
 			school: config.school.toString(),
 			midnightMode: config.midnightMode.toString(),
 			timezonestring: config.timezonestring,
-		});
+		})
 
-		const url = `https://api.aladhan.com/v1/timings/${dateStr}?${params.toString()}`;
+		const url = `https://api.aladhan.com/v1/timings/${dateStr}?${params.toString()}`
 
-		const response = await fetch(url);
+		const response = await fetch(url)
 
 		if (!response.ok) {
-			throw new Error("Failed to fetch prayer times");
+			throw new Error("Failed to fetch prayer times")
 		}
 
-		const data: AladhanResponse = await response.json();
-		const timings = data.data.timings;
+		const data: AladhanResponse = await response.json()
+		const timings = data.data.timings
 
 		return {
 			fajr: formatTime(timings.Fajr),
@@ -72,17 +72,17 @@ export const getPrayerTimes = async (
 			asr: formatTime(timings.Asr),
 			maghrib: formatTime(timings.Maghrib),
 			isha: formatTime(timings.Isha),
-		};
+		}
 	} catch (error) {
-		console.error("Error fetching prayer times:", error);
+		console.error("Error fetching prayer times:", error)
 
 		// Return default times if API fails
-		return defaultPrayerTimes;
+		return defaultPrayerTimes
 	}
-};
+}
 
 const formatTime = (time: string): string => {
 	// Convert from 24-hour format if needed
-	const [hours, minutes] = time.split(":");
-	return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
-};
+	const [hours, minutes] = time.split(":")
+	return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`
+}

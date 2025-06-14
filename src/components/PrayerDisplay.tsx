@@ -1,26 +1,26 @@
-import { MapPin, Phone } from "lucide-react";
-import type React from "react";
-import { useEffect, useState } from "react";
-import { usePrayerContext } from "../contexts/PrayerContext";
-import AnnouncementBanner from "./AnnouncementBanner";
-import CommunityEventsCard from "./CommunityEvents";
-import CurrentTime from "./CurrentTime";
-import IqamahRedirect from "./IqamahRedirect";
-import IslamicCalendar from "./IslamicCalendar";
-import PrayerTimes from "./PrayerTimes";
-import QuranVerseCard from "./QuranVerse";
+import { MapPin, Phone } from "lucide-react"
+import type React from "react"
+import { useEffect, useState } from "react"
+import { usePrayerContext } from "../contexts/PrayerContext"
+import AnnouncementBanner from "./AnnouncementBanner"
+import CommunityEventsCard from "./CommunityEvents"
+import CurrentTime from "./CurrentTime"
+import IqamahRedirect from "./IqamahRedirect"
+import IslamicCalendar from "./IslamicCalendar"
+import PrayerTimes from "./PrayerTimes"
+import QuranVerseCard from "./QuranVerse"
 
 const PrayerDisplay: React.FC = () => {
-	const { mosqueInfo, announcements } = usePrayerContext();
-	const [_currentTime, setCurrentTime] = useState(new Date());
+	const { mosqueInfo, announcements } = usePrayerContext()
+	const [_currentTime, setCurrentTime] = useState(new Date())
 
 	useEffect(() => {
 		const timer = setInterval(() => {
-			setCurrentTime(new Date());
-		}, 1000);
+			setCurrentTime(new Date())
+		}, 1000)
 
-		return () => clearInterval(timer);
-	}, []);
+		return () => clearInterval(timer)
+	}, [])
 
 	return (
 		<div className="relative min-h-screen overflow-hidden">
@@ -119,7 +119,7 @@ const PrayerDisplay: React.FC = () => {
 				</div>
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default PrayerDisplay;
+export default PrayerDisplay

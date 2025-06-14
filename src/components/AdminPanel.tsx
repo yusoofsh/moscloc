@@ -7,9 +7,9 @@ import {
 	Plus,
 	Save,
 	Trash2,
-} from "lucide-react";
-import type React from "react";
-import { useEffect, useId, useState } from "react";
+} from "lucide-react"
+import type React from "react"
+import { useEffect, useId, useState } from "react"
 import {
 	type Event,
 	type IqamahIntervals,
@@ -17,7 +17,7 @@ import {
 	type PrayerSettings,
 	usePrayerContext,
 	type Verse,
-} from "../contexts/PrayerContext";
+} from "../contexts/PrayerContext"
 
 const AdminPanel: React.FC = () => {
 	const {
@@ -35,42 +35,42 @@ const AdminPanel: React.FC = () => {
 		updatePrayerSettings,
 		updateIqamahIntervals,
 		updateIqamahSettings,
-	} = usePrayerContext();
-	const [activeTab, setActiveTab] = useState("mosque");
-	const [formData, setFormData] = useState(mosqueInfo);
+	} = usePrayerContext()
+	const [activeTab, setActiveTab] = useState("mosque")
+	const [formData, setFormData] = useState(mosqueInfo)
 
 	// Generate unique IDs for form controls
-	const nameId = useId();
-	const contactId = useId();
-	const addressId = useId();
-	const latitudeId = useId();
-	const longitudeId = useId();
-	const eventTitleId = useId();
-	const eventDateId = useId();
-	const eventTimeId = useId();
-	const eventLocationId = useId();
-	const eventImageId = useId();
-	const eventDescriptionId = useId();
-	const verseArabicId = useId();
-	const verseTranslationId = useId();
-	const verseReferenceId = useId();
-	const methodId = useId();
-	const shafaqId = useId();
-	const tuneId = useId();
-	const schoolId = useId();
-	const midnightModeId = useId();
-	const timezoneId = useId();
-	const fajrIqamahId = useId();
-	const dhuhrIqamahId = useId();
-	const asrIqamahId = useId();
-	const maghribIqamahId = useId();
-	const ishaIqamahId = useId();
-	const redirectDelayId = useId();
-	const [announcementList, setAnnouncementList] = useState(announcements);
-	const [newAnnouncement, setNewAnnouncement] = useState("");
-	const [eventList, setEventList] = useState(events);
-	const [showEventForm, setShowEventForm] = useState(false);
-	const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+	const nameId = useId()
+	const contactId = useId()
+	const addressId = useId()
+	const latitudeId = useId()
+	const longitudeId = useId()
+	const eventTitleId = useId()
+	const eventDateId = useId()
+	const eventTimeId = useId()
+	const eventLocationId = useId()
+	const eventImageId = useId()
+	const eventDescriptionId = useId()
+	const verseArabicId = useId()
+	const verseTranslationId = useId()
+	const verseReferenceId = useId()
+	const methodId = useId()
+	const shafaqId = useId()
+	const tuneId = useId()
+	const schoolId = useId()
+	const midnightModeId = useId()
+	const timezoneId = useId()
+	const fajrIqamahId = useId()
+	const dhuhrIqamahId = useId()
+	const asrIqamahId = useId()
+	const maghribIqamahId = useId()
+	const ishaIqamahId = useId()
+	const redirectDelayId = useId()
+	const [announcementList, setAnnouncementList] = useState(announcements)
+	const [newAnnouncement, setNewAnnouncement] = useState("")
+	const [eventList, setEventList] = useState(events)
+	const [showEventForm, setShowEventForm] = useState(false)
+	const [editingEvent, setEditingEvent] = useState<Event | null>(null)
 	const [eventForm, setEventForm] = useState<Omit<Event, "id">>({
 		title: "",
 		date: "",
@@ -78,48 +78,48 @@ const AdminPanel: React.FC = () => {
 		location: "",
 		image: "",
 		description: "",
-	});
-	const [verseList, setVerseList] = useState(verses);
-	const [showVerseForm, setShowVerseForm] = useState(false);
-	const [editingVerse, setEditingVerse] = useState<Verse | null>(null);
+	})
+	const [verseList, setVerseList] = useState(verses)
+	const [showVerseForm, setShowVerseForm] = useState(false)
+	const [editingVerse, setEditingVerse] = useState<Verse | null>(null)
 	const [verseForm, setVerseForm] = useState<Omit<Verse, "id">>({
 		arabic: "",
 		translation: "",
 		reference: "",
-	});
+	})
 	const [prayerSettingsForm, setPrayerSettingsForm] =
-		useState<PrayerSettings>(prayerSettings);
+		useState<PrayerSettings>(prayerSettings)
 	const [iqamahIntervalsForm, setIqamahIntervalsForm] =
-		useState<IqamahIntervals>(iqamahIntervals);
+		useState<IqamahIntervals>(iqamahIntervals)
 	const [iqamahSettingsForm, setIqamahSettingsForm] =
-		useState<IqamahSettings>(iqamahSettings);
+		useState<IqamahSettings>(iqamahSettings)
 
 	// Sync forms with context data
 	useEffect(() => {
-		setPrayerSettingsForm(prayerSettings);
-		setIqamahIntervalsForm(iqamahIntervals);
-		setIqamahSettingsForm(iqamahSettings);
-	}, [prayerSettings, iqamahIntervals, iqamahSettings]);
+		setPrayerSettingsForm(prayerSettings)
+		setIqamahIntervalsForm(iqamahIntervals)
+		setIqamahSettingsForm(iqamahSettings)
+	}, [prayerSettings, iqamahIntervals, iqamahSettings])
 
 	const handleSaveMosqueInfo = () => {
-		updateMosqueInfo(formData);
-		alert("Informasi masjid berhasil diperbarui!");
-	};
+		updateMosqueInfo(formData)
+		alert("Informasi masjid berhasil diperbarui!")
+	}
 
 	const handleAddAnnouncement = () => {
 		if (newAnnouncement.trim()) {
-			const updated = [...announcementList, newAnnouncement.trim()];
-			setAnnouncementList(updated);
-			updateAnnouncements(updated);
-			setNewAnnouncement("");
+			const updated = [...announcementList, newAnnouncement.trim()]
+			setAnnouncementList(updated)
+			updateAnnouncements(updated)
+			setNewAnnouncement("")
 		}
-	};
+	}
 
 	const handleDeleteAnnouncement = (index: number) => {
-		const updated = announcementList.filter((_, i) => i !== index);
-		setAnnouncementList(updated);
-		updateAnnouncements(updated);
-	};
+		const updated = announcementList.filter((_, i) => i !== index)
+		setAnnouncementList(updated)
+		updateAnnouncements(updated)
+	}
 
 	const handleAddEvent = () => {
 		if (
@@ -131,10 +131,10 @@ const AdminPanel: React.FC = () => {
 			const newEvent: Event = {
 				...eventForm,
 				id: Date.now().toString(),
-			};
-			const updated = [...eventList, newEvent];
-			setEventList(updated);
-			updateEvents(updated);
+			}
+			const updated = [...eventList, newEvent]
+			setEventList(updated)
+			updateEvents(updated)
 			setEventForm({
 				title: "",
 				date: "",
@@ -142,13 +142,13 @@ const AdminPanel: React.FC = () => {
 				location: "",
 				image: "",
 				description: "",
-			});
-			setShowEventForm(false);
+			})
+			setShowEventForm(false)
 		}
-	};
+	}
 
 	const handleEditEvent = (event: Event) => {
-		setEditingEvent(event);
+		setEditingEvent(event)
 		setEventForm({
 			title: event.title,
 			date: event.date,
@@ -156,9 +156,9 @@ const AdminPanel: React.FC = () => {
 			location: event.location,
 			image: event.image,
 			description: event.description,
-		});
-		setShowEventForm(true);
-	};
+		})
+		setShowEventForm(true)
+	}
 
 	const handleUpdateEvent = () => {
 		if (
@@ -172,10 +172,10 @@ const AdminPanel: React.FC = () => {
 				event.id === editingEvent.id
 					? { ...eventForm, id: editingEvent.id }
 					: event,
-			);
-			setEventList(updated);
-			updateEvents(updated);
-			setEditingEvent(null);
+			)
+			setEventList(updated)
+			updateEvents(updated)
+			setEditingEvent(null)
 			setEventForm({
 				title: "",
 				date: "",
@@ -183,20 +183,20 @@ const AdminPanel: React.FC = () => {
 				location: "",
 				image: "",
 				description: "",
-			});
-			setShowEventForm(false);
+			})
+			setShowEventForm(false)
 		}
-	};
+	}
 
 	const handleDeleteEvent = (id: string) => {
-		const updated = eventList.filter((event) => event.id !== id);
-		setEventList(updated);
-		updateEvents(updated);
-	};
+		const updated = eventList.filter((event) => event.id !== id)
+		setEventList(updated)
+		updateEvents(updated)
+	}
 
 	const handleCancelEventForm = () => {
-		setShowEventForm(false);
-		setEditingEvent(null);
+		setShowEventForm(false)
+		setEditingEvent(null)
 		setEventForm({
 			title: "",
 			date: "",
@@ -204,36 +204,36 @@ const AdminPanel: React.FC = () => {
 			location: "",
 			image: "",
 			description: "",
-		});
-	};
+		})
+	}
 
 	const handleAddVerse = () => {
 		if (verseForm.arabic && verseForm.translation && verseForm.reference) {
 			const newVerse: Verse = {
 				...verseForm,
 				id: Date.now().toString(),
-			};
-			const updated = [...verseList, newVerse];
-			setVerseList(updated);
-			updateVerses(updated);
+			}
+			const updated = [...verseList, newVerse]
+			setVerseList(updated)
+			updateVerses(updated)
 			setVerseForm({
 				arabic: "",
 				translation: "",
 				reference: "",
-			});
-			setShowVerseForm(false);
+			})
+			setShowVerseForm(false)
 		}
-	};
+	}
 
 	const handleEditVerse = (verse: Verse) => {
-		setEditingVerse(verse);
+		setEditingVerse(verse)
 		setVerseForm({
 			arabic: verse.arabic,
 			translation: verse.translation,
 			reference: verse.reference,
-		});
-		setShowVerseForm(true);
-	};
+		})
+		setShowVerseForm(true)
+	}
 
 	const handleUpdateVerse = () => {
 		if (
@@ -246,45 +246,45 @@ const AdminPanel: React.FC = () => {
 				verse.id === editingVerse.id
 					? { ...verseForm, id: editingVerse.id }
 					: verse,
-			);
-			setVerseList(updated);
-			updateVerses(updated);
-			setEditingVerse(null);
+			)
+			setVerseList(updated)
+			updateVerses(updated)
+			setEditingVerse(null)
 			setVerseForm({
 				arabic: "",
 				translation: "",
 				reference: "",
-			});
-			setShowVerseForm(false);
+			})
+			setShowVerseForm(false)
 		}
-	};
+	}
 
 	const handleDeleteVerse = (id: string) => {
-		const updated = verseList.filter((verse) => verse.id !== id);
-		setVerseList(updated);
-		updateVerses(updated);
-	};
+		const updated = verseList.filter((verse) => verse.id !== id)
+		setVerseList(updated)
+		updateVerses(updated)
+	}
 
 	const handleCancelVerseForm = () => {
-		setShowVerseForm(false);
-		setEditingVerse(null);
+		setShowVerseForm(false)
+		setEditingVerse(null)
 		setVerseForm({
 			arabic: "",
 			translation: "",
 			reference: "",
-		});
-	};
+		})
+	}
 
 	const handleSavePrayerSettings = () => {
-		updatePrayerSettings(prayerSettingsForm);
-		alert("Pengaturan waktu shalat berhasil diperbarui!");
-	};
+		updatePrayerSettings(prayerSettingsForm)
+		alert("Pengaturan waktu shalat berhasil diperbarui!")
+	}
 
 	const handleSaveIqamahIntervals = () => {
-		updateIqamahIntervals(iqamahIntervalsForm);
-		updateIqamahSettings(iqamahSettingsForm);
-		alert("Pengaturan iqamah berhasil diperbarui!");
-	};
+		updateIqamahIntervals(iqamahIntervalsForm)
+		updateIqamahSettings(iqamahSettingsForm)
+		alert("Pengaturan iqamah berhasil diperbarui!")
+	}
 
 	return (
 		<div className="min-h-screen bg-gray-100">
@@ -296,7 +296,7 @@ const AdminPanel: React.FC = () => {
 							<button
 								type="button"
 								onClick={() => {
-									window.location.href = "/";
+									window.location.href = "/"
 								}}
 								className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
 							>
@@ -1415,7 +1415,7 @@ const AdminPanel: React.FC = () => {
 				</div>
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default AdminPanel;
+export default AdminPanel

@@ -1,7 +1,7 @@
-import { useIslamicDate } from "../hooks/useIslamicDate";
+import { useIslamicDate } from "../hooks/useIslamicDate"
 
 const IslamicCalendar: React.FC = () => {
-	const { islamicDate, islamicMonth, islamicYear } = useIslamicDate();
+	const { islamicDate, islamicMonth, islamicYear } = useIslamicDate()
 
 	return (
 		<div className="font-bold text-white text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
@@ -9,7 +9,7 @@ const IslamicCalendar: React.FC = () => {
 				{islamicDate} {islamicMonth} {islamicYear} H
 			</span>
 		</div>
-	);
-};
+	)
+}
 
-export default IslamicCalendar;
+export default IslamicCalendar

@@ -1,23 +1,23 @@
-import { Calendar, Clock, MapPin } from "lucide-react";
-import type React from "react";
-import { useEffect, useState } from "react";
-import { usePrayerContext } from "../contexts/PrayerContext";
+import { Calendar, Clock, MapPin } from "lucide-react"
+import type React from "react"
+import { useEffect, useState } from "react"
+import { usePrayerContext } from "../contexts/PrayerContext"
 
 const CommunityEventsCard: React.FC = () => {
-	const { events } = usePrayerContext();
-	const [currentIndex, setCurrentIndex] = useState(0);
+	const { events } = usePrayerContext()
+	const [currentIndex, setCurrentIndex] = useState(0)
 
 	useEffect(() => {
-		if (events.length === 0) return;
+		if (events.length === 0) return
 
 		const interval = setInterval(() => {
 			setCurrentIndex((prevIndex) =>
 				prevIndex === events.length - 1 ? 0 : prevIndex + 1,
-			);
-		}, 6000);
+			)
+		}, 6000)
 
-		return () => clearInterval(interval);
-	}, [events.length]);
+		return () => clearInterval(interval)
+	}, [events.length])
 
 	// If no events, show a placeholder
 	if (events.length === 0) {
@@ -34,7 +34,7 @@ const CommunityEventsCard: React.FC = () => {
 					</div>
 				</div>
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -103,7 +103,7 @@ const CommunityEventsCard: React.FC = () => {
 				</div>
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default CommunityEventsCard;
+export default CommunityEventsCard

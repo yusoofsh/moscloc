@@ -1,29 +1,29 @@
-import { Volume2 } from "lucide-react";
-import type React from "react";
-import { useEffect, useState } from "react";
+import { Volume2 } from "lucide-react"
+import type React from "react"
+import { useEffect, useState } from "react"
 
 interface AnnouncementBannerProps {
-	announcements: string[];
+	announcements: string[]
 }
 
 const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
 	announcements,
 }) => {
-	const [currentIndex, setCurrentIndex] = useState(0);
+	const [currentIndex, setCurrentIndex] = useState(0)
 
 	useEffect(() => {
-		if (announcements.length <= 1) return;
+		if (announcements.length <= 1) return
 
 		const interval = setInterval(() => {
 			setCurrentIndex((prevIndex) =>
 				prevIndex === announcements.length - 1 ? 0 : prevIndex + 1,
-			);
-		}, 5000); // Change announcement every 5 seconds
+			)
+		}, 5000) // Change announcement every 5 seconds
 
-		return () => clearInterval(interval);
-	}, [announcements.length]);
+		return () => clearInterval(interval)
+	}, [announcements.length])
 
-	if (!announcements.length) return null;
+	if (!announcements.length) return null
 
 	return (
 		<div className="rounded-3xl border border-white/20 bg-white/15 p-8 backdrop-blur-md lg:p-12">
@@ -66,7 +66,7 @@ const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
 				)}
 			</div>
 		</div>
-	);
-};
+	)
+}
 
-export default AnnouncementBanner;
+export default AnnouncementBanner
