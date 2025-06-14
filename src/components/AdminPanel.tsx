@@ -13,7 +13,6 @@ import { useEffect, useId, useState } from "react"
 import {
 	type Event,
 	type IqamahIntervals,
-	type IqamahSettings,
 	type PrayerSettings,
 	usePrayerContext,
 	type Verse,
@@ -27,14 +26,12 @@ const AdminPanel: React.FC = () => {
 		verses,
 		prayerSettings,
 		iqamahIntervals,
-		iqamahSettings,
 		updateMosqueInfo,
 		updateAnnouncements,
 		updateEvents,
 		updateVerses,
 		updatePrayerSettings,
 		updateIqamahIntervals,
-		updateIqamahSettings,
 	} = usePrayerContext()
 	const [activeTab, setActiveTab] = useState("mosque")
 	const [formData, setFormData] = useState(mosqueInfo)
@@ -91,15 +88,12 @@ const AdminPanel: React.FC = () => {
 		useState<PrayerSettings>(prayerSettings)
 	const [iqamahIntervalsForm, setIqamahIntervalsForm] =
 		useState<IqamahIntervals>(iqamahIntervals)
-	const [iqamahSettingsForm, setIqamahSettingsForm] =
-		useState<IqamahSettings>(iqamahSettings)
 
 	// Sync forms with context data
 	useEffect(() => {
 		setPrayerSettingsForm(prayerSettings)
 		setIqamahIntervalsForm(iqamahIntervals)
-		setIqamahSettingsForm(iqamahSettings)
-	}, [prayerSettings, iqamahIntervals, iqamahSettings])
+	}, [prayerSettings, iqamahIntervals])
 
 	const handleSaveMosqueInfo = () => {
 		updateMosqueInfo(formData)
@@ -282,12 +276,11 @@ const AdminPanel: React.FC = () => {
 
 	const handleSaveIqamahIntervals = () => {
 		updateIqamahIntervals(iqamahIntervalsForm)
-		updateIqamahSettings(iqamahSettingsForm)
 		alert("Pengaturan iqamah berhasil diperbarui!")
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-100">
+		<div className="min-h-screen bg-gray-100" data-testid="admin-panel">
 			{/* Header */}
 			<div className="border-b bg-white shadow-sm">
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -1296,66 +1289,6 @@ const AdminPanel: React.FC = () => {
 												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
 											/>
 											<span className="text-gray-500 text-sm">menit</span>
-										</div>
-									</div>
-								</div>
-
-								<div className="mt-8 space-y-6">
-									<h3 className="font-semibold text-gray-900 text-lg">
-										Pengaturan Auto-Redirect
-									</h3>
-									<p className="text-gray-600 text-sm">
-										Konfigurasi pengalihan otomatis ke halaman iqamah
-									</p>
-
-									<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-										<div>
-											<label className="flex items-center gap-3">
-												<input
-													type="checkbox"
-													checked={iqamahSettingsForm.autoRedirect}
-													onChange={(e) =>
-														setIqamahSettingsForm({
-															...iqamahSettingsForm,
-															autoRedirect: e.target.checked,
-														})
-													}
-													className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-												/>
-												<span className="font-medium text-gray-700 text-sm">
-													Aktifkan auto-redirect ke halaman iqamah
-												</span>
-											</label>
-											<p className="mt-1 text-gray-500 text-xs">
-												Otomatis pindah ke halaman countdown saat waktu iqamah
-											</p>
-										</div>
-
-										<div>
-											<label
-												htmlFor={redirectDelayId}
-												className="mb-2 block font-medium text-gray-700 text-sm"
-											>
-												Delay Redirect (detik)
-											</label>
-											<input
-												id={redirectDelayId}
-												type="number"
-												min="3"
-												max="30"
-												value={iqamahSettingsForm.redirectDelaySeconds}
-												onChange={(e) =>
-													setIqamahSettingsForm({
-														...iqamahSettingsForm,
-														redirectDelaySeconds: Number(e.target.value),
-													})
-												}
-												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-												disabled={!iqamahSettingsForm.autoRedirect}
-											/>
-											<p className="mt-1 text-gray-500 text-xs">
-												Waktu delay sebelum auto-redirect (3-30 detik)
-											</p>
 										</div>
 									</div>
 								</div>

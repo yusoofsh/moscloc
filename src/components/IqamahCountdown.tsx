@@ -115,7 +115,10 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 
 	if (timeLeft === 0) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-900 via-emerald-900 to-green-800">
+			<div
+				className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-900 via-emerald-900 to-green-800"
+				data-testid="iqamah-countdown"
+			>
 				<div className="text-center text-white">
 					<h1 className="mb-4 animate-pulse font-bold text-6xl">IQAMAH</h1>
 					<p className="mb-2 text-3xl">{currentPrayerName}</p>
@@ -126,7 +129,10 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-blue-800 p-8">
+		<div
+			className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-blue-800 p-8"
+			data-testid="iqamah-countdown"
+		>
 			<div className="w-full max-w-4xl text-center text-white">
 				{/* Mosque Info */}
 				<div className="mb-8">

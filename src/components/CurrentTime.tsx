@@ -15,7 +15,7 @@ const CurrentTime: React.FC = () => {
 	}, [])
 
 	return (
-		<div className="text-right">
+		<div className="text-right" data-testid="current-time">
 			<div className="mb-3 font-bold font-mono text-4xl text-white lg:text-5xl xl:text-6xl 2xl:text-7xl">
 				{format(currentTime, "HH:mm")}
 			</div>

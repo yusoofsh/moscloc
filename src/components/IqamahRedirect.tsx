@@ -87,7 +87,10 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 	if (!showRedirectCountdown) return null
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+			data-testid="iqamah-redirect"
+		>
 			<div className="rounded-lg bg-white p-8 text-center shadow-2xl">
 				<h2 className="mb-4 font-bold text-2xl text-gray-900">
 					Waktu Adzan Tiba!

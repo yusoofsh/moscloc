@@ -21,7 +21,10 @@ const QuranVerseCard: React.FC = () => {
 	// If no verses, show a placeholder
 	if (verses.length === 0) {
 		return (
-			<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-8 text-white backdrop-blur-md lg:p-12">
+			<div
+				className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-8 text-white backdrop-blur-md lg:p-12"
+				data-testid="quran-verse"
+			>
 				<div className="flex h-[240px] items-center justify-center">
 					<div className="text-center">
 						<h4 className="mb-4 font-bold text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
@@ -37,7 +40,10 @@ const QuranVerseCard: React.FC = () => {
 	}
 
 	return (
-		<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-8 text-white backdrop-blur-md lg:p-12">
+		<div
+			className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-8 text-white backdrop-blur-md lg:p-12"
+			data-testid="quran-verse"
+		>
 			{/* Verse Content Container with Fixed Height */}
 			<div className="relative h-[240px] overflow-hidden">
 				<div

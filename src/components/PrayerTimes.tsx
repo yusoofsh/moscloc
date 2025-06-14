@@ -110,7 +110,10 @@ const PrayerTimes: React.FC = () => {
 	}
 
 	return (
-		<div className="rounded-3xl border border-white/20 bg-white/15 p-8 backdrop-blur-md lg:p-12">
+		<div
+			className="rounded-3xl border border-white/20 bg-white/15 p-8 backdrop-blur-md lg:p-12"
+			data-testid="prayer-times"
+		>
 			<div className="grid grid-cols-2 gap-6 lg:grid-cols-6">
 				{prayers.map((prayer, _index) => (
 					<div
