@@ -9,9 +9,11 @@ import {
 	Trash2,
 } from "lucide-react";
 import type React from "react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
 	type Event,
+	type IqamahIntervals,
+	type IqamahSettings,
 	type PrayerSettings,
 	usePrayerContext,
 	type Verse,
@@ -24,11 +26,15 @@ const AdminPanel: React.FC = () => {
 		events,
 		verses,
 		prayerSettings,
+		iqamahIntervals,
+		iqamahSettings,
 		updateMosqueInfo,
 		updateAnnouncements,
 		updateEvents,
 		updateVerses,
 		updatePrayerSettings,
+		updateIqamahIntervals,
+		updateIqamahSettings,
 	} = usePrayerContext();
 	const [activeTab, setActiveTab] = useState("mosque");
 	const [formData, setFormData] = useState(mosqueInfo);
@@ -54,6 +60,12 @@ const AdminPanel: React.FC = () => {
 	const schoolId = useId();
 	const midnightModeId = useId();
 	const timezoneId = useId();
+	const fajrIqamahId = useId();
+	const dhuhrIqamahId = useId();
+	const asrIqamahId = useId();
+	const maghribIqamahId = useId();
+	const ishaIqamahId = useId();
+	const redirectDelayId = useId();
 	const [announcementList, setAnnouncementList] = useState(announcements);
 	const [newAnnouncement, setNewAnnouncement] = useState("");
 	const [eventList, setEventList] = useState(events);
@@ -77,6 +89,17 @@ const AdminPanel: React.FC = () => {
 	});
 	const [prayerSettingsForm, setPrayerSettingsForm] =
 		useState<PrayerSettings>(prayerSettings);
+	const [iqamahIntervalsForm, setIqamahIntervalsForm] =
+		useState<IqamahIntervals>(iqamahIntervals);
+	const [iqamahSettingsForm, setIqamahSettingsForm] =
+		useState<IqamahSettings>(iqamahSettings);
+
+	// Sync forms with context data
+	useEffect(() => {
+		setPrayerSettingsForm(prayerSettings);
+		setIqamahIntervalsForm(iqamahIntervals);
+		setIqamahSettingsForm(iqamahSettings);
+	}, [prayerSettings, iqamahIntervals, iqamahSettings]);
 
 	const handleSaveMosqueInfo = () => {
 		updateMosqueInfo(formData);
@@ -257,6 +280,12 @@ const AdminPanel: React.FC = () => {
 		alert("Pengaturan waktu shalat berhasil diperbarui!");
 	};
 
+	const handleSaveIqamahIntervals = () => {
+		updateIqamahIntervals(iqamahIntervalsForm);
+		updateIqamahSettings(iqamahSettingsForm);
+		alert("Pengaturan iqamah berhasil diperbarui!");
+	};
+
 	return (
 		<div className="min-h-screen bg-gray-100">
 			{/* Header */}
@@ -338,6 +367,17 @@ const AdminPanel: React.FC = () => {
 								}`}
 							>
 								Pengaturan Shalat
+							</button>
+							<button
+								type="button"
+								onClick={() => setActiveTab("iqamah")}
+								className={`border-b-2 px-6 py-4 font-medium text-sm ${
+									activeTab === "iqamah"
+										? "border-emerald-500 text-emerald-600"
+										: "border-transparent text-gray-500 hover:text-gray-700"
+								}`}
+							>
+								Waktu Iqamah
 							</button>
 							<button
 								type="button"
@@ -1114,6 +1154,240 @@ const AdminPanel: React.FC = () => {
 								>
 									<Save size={16} />
 									Simpan Pengaturan Shalat
+								</button>
+							</div>
+						)}
+
+						{activeTab === "iqamah" && (
+							<div className="space-y-6">
+								<h2 className="font-semibold text-gray-900 text-xl">
+									Pengaturan Waktu Iqamah
+								</h2>
+								<p className="text-gray-600 text-sm">
+									Atur interval waktu dari adzan hingga iqamah untuk setiap
+									waktu shalat
+								</p>
+
+								<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+									<div>
+										<label
+											htmlFor={fajrIqamahId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Subuh (Fajr)
+										</label>
+										<div className="flex items-center gap-2">
+											<input
+												id={fajrIqamahId}
+												type="number"
+												min="1"
+												max="60"
+												value={iqamahIntervalsForm.fajr}
+												onChange={(e) =>
+													setIqamahIntervalsForm({
+														...iqamahIntervalsForm,
+														fajr: Number(e.target.value),
+													})
+												}
+												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+											/>
+											<span className="text-gray-500 text-sm">menit</span>
+										</div>
+									</div>
+
+									<div>
+										<label
+											htmlFor={dhuhrIqamahId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Dzuhur (Dhuhr)
+										</label>
+										<div className="flex items-center gap-2">
+											<input
+												id={dhuhrIqamahId}
+												type="number"
+												min="1"
+												max="60"
+												value={iqamahIntervalsForm.dhuhr}
+												onChange={(e) =>
+													setIqamahIntervalsForm({
+														...iqamahIntervalsForm,
+														dhuhr: Number(e.target.value),
+													})
+												}
+												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+											/>
+											<span className="text-gray-500 text-sm">menit</span>
+										</div>
+									</div>
+
+									<div>
+										<label
+											htmlFor={asrIqamahId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Ashar (Asr)
+										</label>
+										<div className="flex items-center gap-2">
+											<input
+												id={asrIqamahId}
+												type="number"
+												min="1"
+												max="60"
+												value={iqamahIntervalsForm.asr}
+												onChange={(e) =>
+													setIqamahIntervalsForm({
+														...iqamahIntervalsForm,
+														asr: Number(e.target.value),
+													})
+												}
+												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+											/>
+											<span className="text-gray-500 text-sm">menit</span>
+										</div>
+									</div>
+
+									<div>
+										<label
+											htmlFor={maghribIqamahId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Maghrib
+										</label>
+										<div className="flex items-center gap-2">
+											<input
+												id={maghribIqamahId}
+												type="number"
+												min="1"
+												max="60"
+												value={iqamahIntervalsForm.maghrib}
+												onChange={(e) =>
+													setIqamahIntervalsForm({
+														...iqamahIntervalsForm,
+														maghrib: Number(e.target.value),
+													})
+												}
+												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+											/>
+											<span className="text-gray-500 text-sm">menit</span>
+										</div>
+									</div>
+
+									<div>
+										<label
+											htmlFor={ishaIqamahId}
+											className="mb-2 block font-medium text-gray-700 text-sm"
+										>
+											Isya (Isha)
+										</label>
+										<div className="flex items-center gap-2">
+											<input
+												id={ishaIqamahId}
+												type="number"
+												min="1"
+												max="60"
+												value={iqamahIntervalsForm.isha}
+												onChange={(e) =>
+													setIqamahIntervalsForm({
+														...iqamahIntervalsForm,
+														isha: Number(e.target.value),
+													})
+												}
+												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+											/>
+											<span className="text-gray-500 text-sm">menit</span>
+										</div>
+									</div>
+								</div>
+
+								<div className="mt-8 space-y-6">
+									<h3 className="font-semibold text-gray-900 text-lg">
+										Pengaturan Auto-Redirect
+									</h3>
+									<p className="text-gray-600 text-sm">
+										Konfigurasi pengalihan otomatis ke halaman iqamah
+									</p>
+
+									<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+										<div>
+											<label className="flex items-center gap-3">
+												<input
+													type="checkbox"
+													checked={iqamahSettingsForm.autoRedirect}
+													onChange={(e) =>
+														setIqamahSettingsForm({
+															...iqamahSettingsForm,
+															autoRedirect: e.target.checked,
+														})
+													}
+													className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+												/>
+												<span className="font-medium text-gray-700 text-sm">
+													Aktifkan auto-redirect ke halaman iqamah
+												</span>
+											</label>
+											<p className="mt-1 text-gray-500 text-xs">
+												Otomatis pindah ke halaman countdown saat waktu iqamah
+											</p>
+										</div>
+
+										<div>
+											<label
+												htmlFor={redirectDelayId}
+												className="mb-2 block font-medium text-gray-700 text-sm"
+											>
+												Delay Redirect (detik)
+											</label>
+											<input
+												id={redirectDelayId}
+												type="number"
+												min="3"
+												max="30"
+												value={iqamahSettingsForm.redirectDelaySeconds}
+												onChange={(e) =>
+													setIqamahSettingsForm({
+														...iqamahSettingsForm,
+														redirectDelaySeconds: Number(e.target.value),
+													})
+												}
+												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+												disabled={!iqamahSettingsForm.autoRedirect}
+											/>
+											<p className="mt-1 text-gray-500 text-xs">
+												Waktu delay sebelum auto-redirect (3-30 detik)
+											</p>
+										</div>
+									</div>
+								</div>
+
+								<div className="mt-6 rounded-lg bg-blue-50 p-4">
+									<h3 className="mb-2 font-medium text-blue-900 text-sm">
+										Informasi Penting:
+									</h3>
+									<ul className="space-y-1 text-blue-800 text-sm">
+										<li>
+											• Waktu iqamah akan otomatis dimulai setelah adzan selesai
+										</li>
+										<li>
+											• Halaman countdown akan menampilkan waktu mundur hingga
+											iqamah
+										</li>
+										<li>
+											• Auto-redirect akan pindah ke halaman iqamah secara
+											otomatis
+										</li>
+										<li>• Akses halaman iqamah di: /iqamah</li>
+										<li>• Minimum 1 menit, maksimum 60 menit per shalat</li>
+									</ul>
+								</div>
+
+								<button
+									type="button"
+									onClick={handleSaveIqamahIntervals}
+									className="flex items-center gap-2 rounded-md bg-emerald-600 px-6 py-2 text-white transition-colors hover:bg-emerald-700"
+								>
+									<Save size={16} />
+									Simpan Waktu Iqamah
 								</button>
 							</div>
 						)}

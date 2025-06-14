@@ -36,12 +36,20 @@ export interface Verse {
 }
 
 export interface PrayerSettings {
-	method: number; // Calculation method (e.g., 20 for custom)
-	shafaq: string; // Shafaq parameter (general, red, white)
-	tune: string; // Minute adjustments (comma-separated values)
-	school: number; // Juristic school (0 = Shafi, 1 = Hanafi)
-	midnightMode: number; // Midnight calculation mode
-	timezonestring: string; // Timezone string
+	method: number;
+	shafaq: string;
+	tune: string;
+	school: number;
+	midnightMode: number;
+	timezonestring: string;
+}
+
+export interface IqamahIntervals {
+	fajr: number;
+	dhuhr: number;
+	asr: number;
+	maghrib: number;
+	isha: number;
 }
 
 interface PrayerTimes {
@@ -60,6 +68,7 @@ interface PrayerContextType {
 	events: Event[];
 	verses: Verse[];
 	prayerSettings: PrayerSettings;
+	iqamahIntervals: IqamahIntervals;
 	currentPrayer: string | null;
 	nextPrayer: string | null;
 	updateMosqueInfo: (info: MosqueInfo) => void;
@@ -67,6 +76,7 @@ interface PrayerContextType {
 	updateEvents: (events: Event[]) => void;
 	updateVerses: (verses: Verse[]) => void;
 	updatePrayerSettings: (settings: PrayerSettings) => void;
+	updateIqamahIntervals: (intervals: IqamahIntervals) => void;
 }
 
 const PrayerContext = createContext<PrayerContextType | undefined>(undefined);
@@ -95,6 +105,14 @@ export const defaultPrayerSettings: PrayerSettings = {
 	school: 0,
 	midnightMode: 0,
 	timezonestring: "Asia/Jakarta",
+};
+
+export const defaultIqamahIntervals: IqamahIntervals = {
+	fajr: 15,
+	dhuhr: 10,
+	asr: 10,
+	maghrib: 5,
+	isha: 10,
 };
 
 export const defaultVerses: Verse[] = [
@@ -150,6 +168,9 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 	const [verses, setVerses] = useState<Verse[]>(defaultVerses);
 	const [prayerSettings, setPrayerSettings] = useState<PrayerSettings>(
 		defaultPrayerSettings,
+	);
+	const [iqamahIntervals, setIqamahIntervals] = useState<IqamahIntervals>(
+		defaultIqamahIntervals,
 	);
 	const [currentPrayer, setCurrentPrayer] = useState<string | null>(null);
 	const [nextPrayer, setNextPrayer] = useState<string | null>(null);
@@ -280,6 +301,11 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 		localStorage.setItem("prayerSettings", JSON.stringify(newSettings));
 	};
 
+	const updateIqamahIntervals = (newIntervals: IqamahIntervals) => {
+		setIqamahIntervals(newIntervals);
+		localStorage.setItem("iqamahIntervals", JSON.stringify(newIntervals));
+	};
+
 	// Load saved data from localStorage
 	useEffect(() => {
 		const savedMosqueInfo = localStorage.getItem("mosqueInfo");
@@ -287,6 +313,7 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 		const savedEvents = localStorage.getItem("events");
 		const savedVerses = localStorage.getItem("verses");
 		const savedPrayerSettings = localStorage.getItem("prayerSettings");
+		const savedIqamahIntervals = localStorage.getItem("iqamahIntervals");
 
 		if (savedMosqueInfo) {
 			setMosqueInfo(JSON.parse(savedMosqueInfo));
@@ -307,6 +334,10 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 		if (savedPrayerSettings) {
 			setPrayerSettings(JSON.parse(savedPrayerSettings));
 		}
+
+		if (savedIqamahIntervals) {
+			setIqamahIntervals(JSON.parse(savedIqamahIntervals));
+		}
 	}, []);
 
 	const value: PrayerContextType = {
@@ -316,6 +347,7 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 		events,
 		verses,
 		prayerSettings,
+		iqamahIntervals,
 		currentPrayer,
 		nextPrayer,
 		updateMosqueInfo,
@@ -323,6 +355,7 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 		updateEvents,
 		updateVerses,
 		updatePrayerSettings,
+		updateIqamahIntervals,
 	};
 
 	return (

@@ -45,7 +45,7 @@ const CommunityEventsCard: React.FC = () => {
 					className="flex h-full transition-transform duration-500 ease-in-out"
 					style={{ transform: `translateX(-${currentIndex * 100}%)` }}
 				>
-					{events.map((event, index) => (
+					{events.map((event) => (
 						<div key={event.id} className="flex h-full w-full flex-shrink-0">
 							{/* Event Image */}
 							<div className="relative w-1/3">

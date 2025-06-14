@@ -44,7 +44,7 @@ const QuranVerseCard: React.FC = () => {
 					className="flex h-full transition-transform duration-500 ease-in-out"
 					style={{ transform: `translateX(-${currentIndex * 100}%)` }}
 				>
-					{verses.map((verse, index) => (
+					{verses.map((verse, _index) => (
 						<div
 							key={verse.id}
 							className="flex h-full w-full flex-shrink-0 flex-col justify-center px-4"

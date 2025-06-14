@@ -9,48 +9,72 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root";
-import { Route as AdminIndexRouteImport } from "./routes/admin/index";
+import { Route as AdminRouteImport } from "./routes/admin";
 import { Route as IndexRouteImport } from "./routes/index";
+import { Route as IqamahRouteImport } from "./routes/iqamah";
 
+const IqamahRoute = IqamahRouteImport.update({
+	id: "/iqamah",
+	path: "/iqamah",
+	getParentRoute: () => rootRouteImport,
+} as any);
+const AdminRoute = AdminRouteImport.update({
+	id: "/admin",
+	path: "/admin",
+	getParentRoute: () => rootRouteImport,
+} as any);
 const IndexRoute = IndexRouteImport.update({
 	id: "/",
 	path: "/",
 	getParentRoute: () => rootRouteImport,
 } as any);
-const AdminIndexRoute = AdminIndexRouteImport.update({
-	id: "/admin/",
-	path: "/admin/",
-	getParentRoute: () => rootRouteImport,
-} as any);
 
 export interface FileRoutesByFullPath {
 	"/": typeof IndexRoute;
-	"/admin": typeof AdminIndexRoute;
+	"/admin": typeof AdminRoute;
+	"/iqamah": typeof IqamahRoute;
 }
 export interface FileRoutesByTo {
 	"/": typeof IndexRoute;
-	"/admin": typeof AdminIndexRoute;
+	"/admin": typeof AdminRoute;
+	"/iqamah": typeof IqamahRoute;
 }
 export interface FileRoutesById {
 	__root__: typeof rootRouteImport;
 	"/": typeof IndexRoute;
-	"/admin/": typeof AdminIndexRoute;
+	"/admin": typeof AdminRoute;
+	"/iqamah": typeof IqamahRoute;
 }
 export interface FileRouteTypes {
 	fileRoutesByFullPath: FileRoutesByFullPath;
-	fullPaths: "/" | "/admin";
+	fullPaths: "/" | "/admin" | "/iqamah";
 	fileRoutesByTo: FileRoutesByTo;
-	to: "/" | "/admin";
-	id: "__root__" | "/" | "/admin/";
+	to: "/" | "/admin" | "/iqamah";
+	id: "__root__" | "/" | "/admin" | "/iqamah";
 	fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
 	IndexRoute: typeof IndexRoute;
-	AdminIndexRoute: typeof AdminIndexRoute;
+	AdminRoute: typeof AdminRoute;
+	IqamahRoute: typeof IqamahRoute;
 }
 
 declare module "@tanstack/react-router" {
 	interface FileRoutesByPath {
+		"/iqamah": {
+			id: "/iqamah";
+			path: "/iqamah";
+			fullPath: "/iqamah";
+			preLoaderRoute: typeof IqamahRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
+		"/admin": {
+			id: "/admin";
+			path: "/admin";
+			fullPath: "/admin";
+			preLoaderRoute: typeof AdminRouteImport;
+			parentRoute: typeof rootRouteImport;
+		};
 		"/": {
 			id: "/";
 			path: "/";
@@ -58,19 +82,13 @@ declare module "@tanstack/react-router" {
 			preLoaderRoute: typeof IndexRouteImport;
 			parentRoute: typeof rootRouteImport;
 		};
-		"/admin/": {
-			id: "/admin/";
-			path: "/admin";
-			fullPath: "/admin";
-			preLoaderRoute: typeof AdminIndexRouteImport;
-			parentRoute: typeof rootRouteImport;
-		};
 	}
 }
 
 const rootRouteChildren: RootRouteChildren = {
 	IndexRoute: IndexRoute,
-	AdminIndexRoute: AdminIndexRoute,
+	AdminRoute: AdminRoute,
+	IqamahRoute: IqamahRoute,
 };
 export const routeTree = rootRouteImport
 	._addFileChildren(rootRouteChildren)
