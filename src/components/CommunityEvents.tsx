@@ -25,7 +25,7 @@ const CommunityEventsCard: React.FC = () => {
 			<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-4 text-white backdrop-blur-md lg:p-6">
 				<div className="flex h-[192px] items-center justify-center">
 					<div className="text-center">
-						<h4 className="mb-4 font-bold text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
+						<h4 className="font-bold text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
 							Belum Ada Acara
 						</h4>
 						<p className="font-bold text-base text-white/80 leading-relaxed lg:text-lg xl:text-xl 2xl:text-2xl">
