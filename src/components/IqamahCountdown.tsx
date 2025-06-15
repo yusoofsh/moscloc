@@ -130,7 +130,7 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 
 	return (
 		<div
-			className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-blue-800 p-8"
+			className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-blue-800 p-4"
 			data-testid="iqamah-countdown"
 		>
 			<div className="w-full max-w-4xl text-center text-white">
@@ -150,7 +150,7 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 
 				{/* Countdown Display */}
 				<div className="mb-8">
-					<div className="rounded-3xl bg-white/10 p-8 shadow-2xl backdrop-blur-sm md:p-12">
+					<div className="rounded-3xl bg-white/10 p-4 shadow-2xl backdrop-blur-sm lg:p-6">
 						<div className="mb-4 font-bold font-mono text-8xl text-yellow-300 md:text-9xl">
 							{formatTime(timeLeft)}
 						</div>

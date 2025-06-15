@@ -4,13 +4,11 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "vite --port=3001",
+		"dev": "vite dev",
 		"build": "vite build",
 		"serve": "vite preview",
-		"start": "vite",
-		"check-types": "tsc --noEmit",
+		"check-types": "tsc",
 		"generate-pwa-assets": "pwa-assets-generator",
-		"tauri": "tauri",
 		"desktop:dev": "tauri dev",
 		"desktop:build": "tauri build",
 		"test": "playwright test",
@@ -57,7 +55,7 @@
 	},
 	"lint-staged": {
 		"*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-			"biome check --write ."
+			"biome check --write --unsafe ."
 		]
 	}
 }

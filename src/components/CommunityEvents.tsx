@@ -22,8 +22,8 @@ const CommunityEventsCard: React.FC = () => {
 	// If no events, show a placeholder
 	if (events.length === 0) {
 		return (
-			<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-8 text-white backdrop-blur-md lg:p-12">
-				<div className="flex h-[240px] items-center justify-center">
+			<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-4 text-white backdrop-blur-md lg:p-6">
+				<div className="flex h-[192px] items-center justify-center">
 					<div className="text-center">
 						<h4 className="mb-4 font-bold text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
 							Belum Ada Acara
@@ -38,9 +38,9 @@ const CommunityEventsCard: React.FC = () => {
 	}
 
 	return (
-		<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-8 text-white backdrop-blur-md lg:p-12">
+		<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-4 text-white backdrop-blur-md lg:p-6">
 			{/* Event Content */}
-			<div className="relative h-[240px] overflow-hidden">
+			<div className="relative h-[192px] overflow-hidden">
 				<div
 					className="flex h-full transition-transform duration-500 ease-in-out"
 					style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -58,7 +58,7 @@ const CommunityEventsCard: React.FC = () => {
 							</div>
 
 							{/* Event Details */}
-							<div className="flex w-2/3 flex-col justify-center pl-8">
+							<div className="flex w-2/3 flex-col justify-center pl-4">
 								<h4 className="mb-6 font-bold text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
 									{event.title}
 								</h4>

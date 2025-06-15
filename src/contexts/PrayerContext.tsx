@@ -159,9 +159,6 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 		useState<PrayerTimes>(defaultPrayerTimes)
 	const prayerTimesRef = useRef<PrayerTimes>(defaultPrayerTimes)
 	const [announcements, setAnnouncements] = useState<string[]>([
-		"Pengajian rutin setiap Kamis malam ba'da Isya bersama Ustadz Ahmad",
-		"Kerja bakti setiap Sabtu pagi pukul 07:00 WIB",
-		"Pendaftaran kelas Tahfidz untuk anak-anak dibuka mulai hari ini",
 		"Shalat Tarawih berjamaah setiap malam selama bulan Ramadhan",
 	])
 	const [events, setEvents] = useState<Event[]>([])

@@ -38,7 +38,7 @@ const PrayerDisplay: React.FC = () => {
 			{/* Main Content */}
 			<div className="relative z-10 flex min-h-screen flex-col">
 				{/* Header Section */}
-				<div className="flex-shrink-0 p-8 lg:p-12">
+				<div className="flex-shrink-0 p-4 lg:p-6">
 					<div className="flex items-start justify-between">
 						{/* Mosque Info */}
 						<div className="text-white">

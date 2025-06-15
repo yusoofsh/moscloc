@@ -62,7 +62,7 @@ const AdminPanel: React.FC = () => {
 	const asrIqamahId = useId()
 	const maghribIqamahId = useId()
 	const ishaIqamahId = useId()
-	const redirectDelayId = useId()
+	const _redirectDelayId = useId()
 	const [announcementList, setAnnouncementList] = useState(announcements)
 	const [newAnnouncement, setNewAnnouncement] = useState("")
 	const [eventList, setEventList] = useState(events)

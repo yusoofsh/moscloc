@@ -28,12 +28,12 @@ const PrayerTimes: React.FC = () => {
 
 			const now = new Date()
 			const prayerTimeMap: { [key: string]: string } = {
-				fajr: prayerTimes.fajr,
-				sunrise: prayerTimes.sunrise,
-				dhuhr: prayerTimes.dhuhr,
-				asr: prayerTimes.asr,
+				subuh: prayerTimes.fajr,
+				syuruq: prayerTimes.sunrise,
+				dzuhur: prayerTimes.dhuhr,
+				ashar: prayerTimes.asr,
 				maghrib: prayerTimes.maghrib,
-				isha: prayerTimes.isha,
+				isya: prayerTimes.isha,
 			}
 
 			const nextPrayerTime = prayerTimeMap[nextPrayer.toLowerCase()]
@@ -102,6 +102,10 @@ const PrayerTimes: React.FC = () => {
 	]
 
 	const isCurrentPrayer = (prayerName: string) => {
+		// Disable current prayer highlighting for Syuruq
+		if (currentPrayer?.toLowerCase() === "syuruq") {
+			return false
+		}
 		return currentPrayer?.toLowerCase() === prayerName.toLowerCase()
 	}
 
@@ -111,14 +115,14 @@ const PrayerTimes: React.FC = () => {
 
 	return (
 		<div
-			className="rounded-3xl border border-white/20 bg-white/15 p-8 backdrop-blur-md lg:p-12"
+			className="rounded-3xl border border-white/20 bg-white/15 p-4 backdrop-blur-md lg:p-6"
 			data-testid="prayer-times"
 		>
 			<div className="grid grid-cols-2 gap-6 lg:grid-cols-6">
-				{prayers.map((prayer, _index) => (
+				{prayers.map((prayer) => (
 					<div
 						key={prayer.name}
-						className={`relative rounded-2xl p-6 text-center transition-all duration-500 lg:p-8 ${
+						className={`relative rounded-2xl p-6 text-center transition-all duration-500 lg:p-4 ${
 							isCurrentPrayer(prayer.name)
 								? "scale-110 border-4 border-blue-300 bg-blue-500 text-white"
 								: isNextPrayer(prayer.name)
@@ -127,22 +131,22 @@ const PrayerTimes: React.FC = () => {
 						} `}
 					>
 						{isCurrentPrayer(prayer.name) && (
-							<div className="-top-3 -right-3 absolute animate-pulse rounded-full bg-red-500 px-3 py-2 font-bold text-sm text-white">
+							<div className="-top-3 -right-3 absolute animate-pulse rounded-full bg-red-400 px-3 py-2 font-bold text-sm text-white">
 								SEKARANG
 							</div>
 						)}
 
 						{isNextPrayer(prayer.name) && timeLeft && (
-							<div className="-top-3 -right-3 absolute rounded-full bg-emerald-600 px-3 py-2 font-bold font-mono text-sm text-white">
+							<div className="-right-3 -top-3 absolute rounded-full bg-emerald-600 px-3 py-2 font-bold font-mono text-sm text-white lg:text-lg">
 								{timeLeft}
 							</div>
 						)}
 
 						{/* Icon */}
-						<div className="mb-4 flex justify-center">{prayer.icon}</div>
+						<div className="mb-2 flex justify-center">{prayer.icon}</div>
 
 						{/* Main time display */}
-						<div className="mb-4 font-bold font-mono text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
+						<div className="mb-2 font-bold font-mono text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
 							{prayer.time}
 						</div>
 

@@ -26,7 +26,7 @@ const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
 	if (!announcements.length) return null
 
 	return (
-		<div className="rounded-3xl border border-white/20 bg-white/15 p-8 backdrop-blur-md lg:p-12">
+		<div className="rounded-3xl border border-white/20 bg-white/15 p-4 backdrop-blur-md lg:p-6">
 			<div className="flex items-center gap-6">
 				<div className="flex-shrink-0">
 					<div className="rounded-2xl border border-red-400/30 bg-red-500/30 p-4">
