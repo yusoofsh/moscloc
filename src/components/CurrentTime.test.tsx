@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { page } from "vitest/browser"
 import { render } from "vitest-browser-react"
 import CurrentTime from "./CurrentTime"
@@ -7,6 +7,10 @@ describe("CurrentTime", () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
 		vi.setSystemTime(new Date("2024-01-15T14:30:00"))
+	})
+
+	afterEach(() => {
+		vi.useRealTimers()
 	})
 
 	it("renders current time in HH:mm format", async () => {

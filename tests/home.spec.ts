@@ -4,11 +4,13 @@ test.describe("Home Page", () => {
 	test("should load and display prayer times", async ({ page }) => {
 		await page.goto("/")
 
-		// Wait for the page to load
-		await expect(page).toHaveTitle(/Moscloc/)
-
 		// Check if the main prayer times component is visible
 		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
+
+		// Check prayer times contain time format
+		await expect(
+			page.locator('[data-testid="prayer-times"] .font-mono').first(),
+		).toContainText(/\d{2}:\d{2}/)
 	})
 
 	test("should display current time", async ({ page }) => {

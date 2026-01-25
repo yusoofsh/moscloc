@@ -12,7 +12,7 @@ export async function waitForPrayerTimesToLoad(page: Page) {
 
 	// Wait for actual prayer times to appear (not just loading state)
 	await expect(
-		page.locator('[data-testid="prayer-times"] .font-mono'),
+		page.locator('[data-testid="prayer-times"] .font-mono').first(),
 	).toContainText(/\d{2}:\d{2}/)
 }
 
