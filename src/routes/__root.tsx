@@ -4,7 +4,7 @@ import {
 	useRouterState,
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
-import Loader from "~/components/Loader"
+import Loader from "~/components/loader"
 import { PrayerProvider } from "~/contexts/PrayerContext"
 import "../index.css"
 
