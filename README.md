@@ -5,6 +5,7 @@ A modern Islamic mosque management application built with React, TypeScript, and
 ## Features
 
 ### 🕌 Core Features
+
 - **Prayer Times Display**: Accurate prayer times with customizable calculation methods
 - **Islamic Calendar**: Hijri date display with current Islamic date
 - **Quran Verses**: Daily rotating verses with Arabic text and translations
@@ -13,6 +14,7 @@ A modern Islamic mosque management application built with React, TypeScript, and
 - **Mosque Information**: Customizable mosque details and contact information
 
 ### ⏰ Iqamah Countdown System
+
 - **Automatic Countdown**: Shows countdown timer from Adhan to Iqamah
 - **Configurable Intervals**: Set different waiting times for each prayer
 - **Visual Display**: Beautiful full-screen countdown with mosque branding
@@ -20,6 +22,7 @@ A modern Islamic mosque management application built with React, TypeScript, and
 - **Multi-language**: Support for Indonesian and Arabic prayer names
 
 ### 🎨 Modern UI/UX
+
 - **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
 - **Islamic Design**: Beautiful Islamic-themed UI with geometric patterns
 - **Dark/Light Themes**: Support for different visual themes
@@ -29,48 +32,50 @@ A modern Islamic mosque management application built with React, TypeScript, and
 ## Installation & Setup
 
 ### Prerequisites
-- Node.js 18+
+
+- Node.js 26.3.1 via mise
 - Rust (for Tauri desktop app)
-- npm or bun package manager
+- NubJS package manager
 
 ### Development Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd moscloc
    ```
 
 2. **Install dependencies**
+
    ```bash
-   npm install
-   # or
-   bun install
+   nub install
    ```
 
 3. **Start development server**
+
    ```bash
-   npm run dev
-   # or
-   bun dev
+   nub run dev
    ```
 
 4. **Access the application**
-   - Web: `http://localhost:3002`
-   - Admin Panel: `http://localhost:3002/admin`
-   - Iqamah Page: `http://localhost:3002/iqamah`
+   - Web: `http://localhost:5173`
+   - Admin Panel: `http://localhost:5173/admin`
+   - Iqamah Page: `http://localhost:5173/iqamah`
 
 ### Building for Production
 
 **Web Application:**
+
 ```bash
-npm run build
-npm run serve
+nub run build
+nub run serve
 ```
 
 **Desktop Application:**
+
 ```bash
-npm run desktop:build
+nub run desktop:build
 ```
 
 ## Usage Guide
@@ -107,17 +112,20 @@ Access the admin panel at `/admin` to configure:
 ### Iqamah Countdown Feature
 
 #### How it Works
+
 1. **Automatic Detection**: The system automatically detects when it's time between Adhan and Iqamah
 2. **Visual Countdown**: Shows a beautiful full-screen countdown timer
 3. **Mosque Branding**: Displays mosque name, address, and prayer information
 4. **Progress Indicator**: Visual progress bar showing time elapsed
 
 #### Accessing Iqamah Page
+
 - **Direct URL**: Navigate to `/iqamah`
 - **Auto-redirect**: Can be configured to auto-redirect from main display
 - **Manual Control**: Admin can manually open when needed
 
 #### Display Information
+
 - Current prayer name (e.g., "Menuju Iqamah Dzuhur")
 - Countdown timer in MM:SS format
 - Adhan time and Iqamah time
@@ -125,6 +133,7 @@ Access the admin panel at `/admin` to configure:
 - Progress bar visualization
 
 #### States
+
 - **No Active Iqamah**: Shows message when not in Iqamah period
 - **Countdown Active**: Shows countdown timer with remaining time
 - **Iqamah Time**: Shows "IQAMAH" message when time is reached
@@ -132,6 +141,7 @@ Access the admin panel at `/admin` to configure:
 ### Prayer Times API
 
 The application uses the Aladhan API for accurate prayer times:
+
 - Supports 15+ calculation methods worldwide
 - Automatic timezone detection
 - Custom tune parameters for local adjustments
@@ -140,15 +150,17 @@ The application uses the Aladhan API for accurate prayer times:
 ## Technical Architecture
 
 ### Tech Stack
+
 - **Frontend**: React 19, TypeScript, Tailwind CSS
 - **Routing**: TanStack Router with file-based routing
 - **State Management**: React Context API
 - **Desktop**: Tauri (Rust-based)
 - **Build Tool**: Vite
 - **PWA**: Vite PWA plugin
-- **Linting**: Biome
+- **Linting/formatting**: Oxlint + Oxfmt
 
 ### Project Structure
+
 ```
 src/
 ├── components/          # React components
@@ -170,24 +182,26 @@ src/
 ## Configuration Examples
 
 ### Sample Iqamah Configuration
+
 ```json
 {
-  "fajr": 15,     // 15 minutes after Fajr Adhan
-  "dhuhr": 10,    // 10 minutes after Dhuhr Adhan
-  "asr": 10,      // 10 minutes after Asr Adhan
-  "maghrib": 5,   // 5 minutes after Maghrib Adhan
-  "isha": 10      // 10 minutes after Isha Adhan
+	"fajr": 15, // 15 minutes after Fajr Adhan
+	"dhuhr": 10, // 10 minutes after Dhuhr Adhan
+	"asr": 10, // 10 minutes after Asr Adhan
+	"maghrib": 5, // 5 minutes after Maghrib Adhan
+	"isha": 10 // 10 minutes after Isha Adhan
 }
 ```
 
 ### Prayer Settings Example
+
 ```json
 {
-  "method": 20,                    // Custom method
-  "school": 0,                     // Shafi school
-  "tune": "10,10,-1,1,2,3,3,2,0", // Time adjustments
-  "timezonestring": "Asia/Jakarta",
-  "shafaq": "general"
+	"method": 20, // Custom method
+	"school": 0, // Shafi school
+	"tune": "10,10,-1,1,2,3,3,2,0", // Time adjustments
+	"timezonestring": "Asia/Jakarta",
+	"shafaq": "general"
 }
 ```
 
@@ -206,6 +220,7 @@ This project is licensed under the MIT License.
 ## Support
 
 For support and questions:
+
 - Open an issue on GitHub
 - Check the documentation
 - Contact the development team

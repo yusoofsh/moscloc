@@ -15,7 +15,6 @@
 			"@testing-library/jest-dom/vitest"
 		],
 		"rootDirs": ["."],
-		"baseUrl": ".",
 		"paths": {
 			"~/*": ["./src/*"]
 		}

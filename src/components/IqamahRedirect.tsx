@@ -1,6 +1,8 @@
 import { useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
+import { Button } from "~/components/ui/button"
 import { usePrayerContext } from "../contexts/PrayerContext"
+import { getIqamahRedirectState } from "../lib/iqamahLogic"
 
 interface IqamahRedirectProps {
 	autoRedirect?: boolean
@@ -20,43 +22,16 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 		if (!autoRedirect) return
 
 		const checkForIqamahTime = () => {
-			const now = new Date()
-			const currentTime = now.getHours() * 60 + now.getMinutes()
+			const state = getIqamahRedirectState({
+				prayerTimes,
+				iqamahIntervals,
+				redirectDelaySeconds,
+			})
 
-			const prayerSchedule = [
-				{ name: "Subuh", time: prayerTimes.fajr, intervalKey: "fajr" as const },
-				{
-					name: "Dzuhur",
-					time: prayerTimes.dhuhr,
-					intervalKey: "dhuhr" as const,
-				},
-				{ name: "Ashar", time: prayerTimes.asr, intervalKey: "asr" as const },
-				{
-					name: "Maghrib",
-					time: prayerTimes.maghrib,
-					intervalKey: "maghrib" as const,
-				},
-				{ name: "Isya", time: prayerTimes.isha, intervalKey: "isha" as const },
-			]
-
-			for (const prayer of prayerSchedule) {
-				const [hours, minutes] = prayer.time.split(":").map(Number)
-				const prayerMinutes = hours * 60 + minutes
-				const interval = iqamahIntervals[prayer.intervalKey]
-				const iqamahMinutes = prayerMinutes + interval
-
-				// Check if we're within 30 seconds before iqamah time
-				const secondsUntilIqamah =
-					(iqamahMinutes - currentTime) * 60 - now.getSeconds()
-
-				if (
-					secondsUntilIqamah <= redirectDelaySeconds &&
-					secondsUntilIqamah > 0
-				) {
-					setShowRedirectCountdown(true)
-					setCountdownSeconds(Math.ceil(secondsUntilIqamah))
-					return
-				}
+			if (state.status === "prompt") {
+				setShowRedirectCountdown(true)
+				setCountdownSeconds(Math.ceil(state.countdownSeconds))
+				return
 			}
 
 			setShowRedirectCountdown(false)
@@ -74,7 +49,7 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 		const countdownInterval = setInterval(() => {
 			setCountdownSeconds((prev) => {
 				if (prev <= 1) {
-					navigate({ to: "/iqamah" })
+					void navigate({ to: "/iqamah" })
 					return 0
 				}
 				return prev - 1
@@ -99,20 +74,17 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 				<div className="mb-6 font-bold text-6xl text-emerald-600">
 					{countdownSeconds}
 				</div>
-				<button
-					type="button"
-					onClick={() => navigate({ to: "/iqamah" })}
-					className="rounded-md bg-emerald-600 px-6 py-2 text-white transition-colors hover:bg-emerald-700"
-				>
+				<Button type="button" onClick={() => navigate({ to: "/iqamah" })}>
 					Pergi Sekarang
-				</button>
-				<button
+				</Button>
+				<Button
 					type="button"
+					variant="secondary"
 					onClick={() => setShowRedirectCountdown(false)}
-					className="ml-4 rounded-md bg-gray-300 px-6 py-2 text-gray-700 transition-colors hover:bg-gray-400"
+					className="ml-4"
 				>
 					Batal
-				</button>
+				</Button>
 			</div>
 		</div>
 	)

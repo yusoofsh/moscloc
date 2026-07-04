@@ -6,7 +6,7 @@ import PrayerTimes from "./PrayerTimes"
 
 describe("PrayerTimes", () => {
 	it("renders all six prayer times", async () => {
-		render(
+		await render(
 			<PrayerProvider>
 				<PrayerTimes />
 			</PrayerProvider>,
@@ -21,7 +21,7 @@ describe("PrayerTimes", () => {
 	})
 
 	it("has correct test id", async () => {
-		render(
+		await render(
 			<PrayerProvider>
 				<PrayerTimes />
 			</PrayerProvider>,
@@ -31,7 +31,7 @@ describe("PrayerTimes", () => {
 	})
 
 	it("displays default prayer times", async () => {
-		render(
+		await render(
 			<PrayerProvider>
 				<PrayerTimes />
 			</PrayerProvider>,
@@ -43,7 +43,7 @@ describe("PrayerTimes", () => {
 	})
 
 	it("renders prayer time icons", async () => {
-		render(
+		await render(
 			<PrayerProvider>
 				<PrayerTimes />
 			</PrayerProvider>,

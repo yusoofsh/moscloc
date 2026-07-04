@@ -1,6 +1,10 @@
 import { Navigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 import { usePrayerContext } from "../contexts/PrayerContext"
+import {
+	getIqamahCountdownState,
+	type IqamahCountdownState,
+} from "../lib/iqamahLogic"
 
 interface IqamahCountdownProps {
 	prayerName?: string
@@ -12,89 +16,28 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 	onComplete,
 }) => {
 	const { prayerTimes, iqamahIntervals, mosqueInfo } = usePrayerContext()
-	const [timeLeft, setTimeLeft] = useState<number | null>(null)
-	const [currentPrayerName, setCurrentPrayerName] = useState<string>("")
-	const [iqamahTime, setIqamahTime] = useState<string>("")
+	const [iqamahState, setIqamahState] = useState<IqamahCountdownState>({
+		status: "inactive",
+	})
+	const [hasCalculated, setHasCalculated] = useState(false)
 
 	useEffect(() => {
+		setHasCalculated(false)
+
 		const calculateTimeLeft = () => {
-			const now = new Date()
-			const currentTime = now.getHours() * 60 + now.getMinutes()
+			const state = getIqamahCountdownState({
+				prayerTimes,
+				iqamahIntervals,
+				prayerName,
+			})
 
-			const prayerSchedule = [
-				{ name: "Subuh", time: prayerTimes.fajr, intervalKey: "fajr" as const },
-				{
-					name: "Dzuhur",
-					time: prayerTimes.dhuhr,
-					intervalKey: "dhuhr" as const,
-				},
-				{ name: "Ashar", time: prayerTimes.asr, intervalKey: "asr" as const },
-				{
-					name: "Maghrib",
-					time: prayerTimes.maghrib,
-					intervalKey: "maghrib" as const,
-				},
-				{ name: "Isya", time: prayerTimes.isha, intervalKey: "isha" as const },
-			]
+			setIqamahState(state)
 
-			let targetPrayer = null
-
-			if (prayerName) {
-				// If specific prayer is provided, use it
-				const prayer = prayerSchedule.find(
-					(p) =>
-						p.name.toLowerCase() === prayerName.toLowerCase() ||
-						p.intervalKey.toLowerCase() === prayerName.toLowerCase(),
-				)
-				if (prayer) {
-					targetPrayer = prayer
-				}
-			} else {
-				// Auto-detect current prayer based on time
-				for (const prayer of prayerSchedule) {
-					const [hours, minutes] = prayer.time.split(":").map(Number)
-					const prayerMinutes = hours * 60 + minutes
-					const iqamahMinutes =
-						prayerMinutes + iqamahIntervals[prayer.intervalKey]
-
-					// Check if we're in the window between adhan and iqamah
-					if (currentTime >= prayerMinutes && currentTime < iqamahMinutes) {
-						targetPrayer = prayer
-						break
-					}
-				}
+			if (state.status === "iqamah") {
+				onComplete?.()
 			}
 
-			if (targetPrayer) {
-				const [hours, minutes] = targetPrayer.time.split(":").map(Number)
-				const prayerMinutes = hours * 60 + minutes
-				const interval = iqamahIntervals[targetPrayer.intervalKey]
-				const iqamahMinutes = prayerMinutes + interval
-
-				// Calculate iqamah time string
-				const iqamahHours = Math.floor(iqamahMinutes / 60)
-				const iqamahMins = iqamahMinutes % 60
-				const iqamahTimeString = `${iqamahHours.toString().padStart(2, "0")}:${iqamahMins.toString().padStart(2, "0")}`
-
-				setCurrentPrayerName(targetPrayer.name)
-				setIqamahTime(iqamahTimeString)
-
-				const remainingSeconds =
-					(iqamahMinutes - currentTime) * 60 - now.getSeconds()
-
-				if (remainingSeconds > 0) {
-					setTimeLeft(remainingSeconds)
-				} else {
-					setTimeLeft(0)
-					if (onComplete) {
-						onComplete()
-					}
-				}
-			} else {
-				setTimeLeft(null)
-				setCurrentPrayerName("")
-				setIqamahTime("")
-			}
+			setHasCalculated(true)
 		}
 
 		calculateTimeLeft()
@@ -109,11 +52,15 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 		return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
 	}
 
-	if (timeLeft === null) {
+	if (!hasCalculated) {
+		return null
+	}
+
+	if (iqamahState.status === "inactive") {
 		return <Navigate to="/" />
 	}
 
-	if (timeLeft === 0) {
+	if (iqamahState.status === "iqamah") {
 		return (
 			<div
 				className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-900 via-emerald-900 to-green-800"
@@ -121,7 +68,7 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 			>
 				<div className="text-center text-white">
 					<h1 className="mb-4 animate-pulse font-bold text-6xl">IQAMAH</h1>
-					<p className="mb-2 text-3xl">{currentPrayerName}</p>
+					<p className="mb-2 text-3xl">{iqamahState.prayerName}</p>
 					<p className="text-xl opacity-80">{mosqueInfo.name}</p>
 				</div>
 			</div>
@@ -143,19 +90,23 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 				{/* Prayer Name */}
 				<div className="mb-8">
 					<h1 className="mb-4 font-bold text-4xl md:text-5xl">
-						Menuju Iqamah {currentPrayerName}
+						Menuju Iqamah {iqamahState.prayerName}
 					</h1>
-					<p className="text-xl opacity-90">Iqamah pada pukul {iqamahTime}</p>
+					<p className="text-xl opacity-90">
+						Iqamah pada pukul {iqamahState.iqamahTime}
+					</p>
 				</div>
 
 				{/* Countdown Display */}
 				<div className="mb-8">
 					<div className="rounded-3xl bg-white/10 p-4 shadow-2xl backdrop-blur-sm lg:p-6">
 						<div className="mb-4 font-bold font-mono text-8xl text-yellow-300 md:text-9xl">
-							{formatTime(timeLeft)}
+							{formatTime(iqamahState.timeLeftSeconds)}
 						</div>
 						<p className="font-semibold text-2xl md:text-3xl">
-							{Math.floor(timeLeft / 60) === 0 ? "Detik" : "Menit:Detik"}
+							{Math.floor(iqamahState.timeLeftSeconds / 60) === 0
+								? "Detik"
+								: "Menit:Detik"}
 						</p>
 					</div>
 				</div>
@@ -167,15 +118,10 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 					</p>
 					<div className="flex justify-center space-x-8 text-sm opacity-60">
 						<div>
-							<p className="font-semibold">
-								Adzan:{" "}
-								{prayerTimes[
-									currentPrayerName.toLowerCase() as keyof typeof prayerTimes
-								] || "N/A"}
-							</p>
+							<p className="font-semibold">Adzan: {iqamahState.adhanTime}</p>
 						</div>
 						<div>
-							<p className="font-semibold">Iqamah: {iqamahTime}</p>
+							<p className="font-semibold">Iqamah: {iqamahState.iqamahTime}</p>
 						</div>
 					</div>
 				</div>
@@ -186,7 +132,7 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 						<div
 							className="h-2 rounded-full bg-yellow-300 transition-all duration-1000"
 							style={{
-								width: `${Math.max(0, 100 - (timeLeft / (iqamahIntervals[currentPrayerName.toLowerCase() as keyof typeof iqamahIntervals] * 60)) * 100)}%`,
+								width: `${Math.max(0, 100 - (iqamahState.timeLeftSeconds / iqamahState.iqamahIntervalSeconds) * 100)}%`,
 							}}
 						/>
 					</div>

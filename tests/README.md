@@ -6,15 +6,15 @@ This project uses Playwright for end-to-end testing to ensure the application wo
 
 ### Prerequisites
 
-- Bun (package manager)
-- Node.js (for Playwright)
+- NubJS
+- Node.js 26.3.1 via mise
 
 ### Installation
 
 Playwright is already installed as a dev dependency. To install browsers:
 
 ```bash
-bunx playwright install
+nub exec playwright install
 ```
 
 ## Running Tests
@@ -22,33 +22,36 @@ bunx playwright install
 ### Basic Commands
 
 ```bash
-# Run all tests
-bun run test
+# Run the full local verification gate
+nub run test
 
-# Run tests in headed mode (visible browser)
-bun run test:headed
+# Run only Playwright E2E tests
+nub run test:e2e
+
+# Run E2E tests in headed mode (visible browser)
+nub run test:headed
 
 # Run tests with UI mode for debugging
-bun run test:ui
+nub run test:ui
 
 # Show test report
-bun run test:report
+nub run test:report
 ```
 
 ### Advanced Commands
 
 ```bash
 # Run specific test file
-bunx playwright test tests/home.spec.ts
+nub exec playwright test tests/home.spec.ts
 
 # Run tests in specific browser
-bunx playwright test --project=chromium
+nub exec playwright test --project=chromium
 
 # Run tests in debug mode
-bunx playwright test --debug
+nub exec playwright test --debug
 
 # Update snapshots (if using visual testing)
-bunx playwright test --update-snapshots
+nub exec playwright test --update-snapshots
 ```
 
 ## Test Structure
@@ -98,11 +101,13 @@ The following `data-testid` attributes are used for reliable element selection:
 Tests run on multiple browsers and devices:
 
 ### Desktop
+
 - Chromium (Chrome)
 - Firefox
 - WebKit (Safari)
 
 ### Mobile
+
 - Mobile Chrome (Pixel 5)
 - Mobile Safari (iPhone 12)
 - iPad Pro
@@ -110,24 +115,28 @@ Tests run on multiple browsers and devices:
 ## Test Categories
 
 ### Functional Tests
+
 - Component rendering
 - User interactions
 - Navigation flow
 - Data display
 
 ### Accessibility Tests
+
 - Heading structure
 - Alt text for images
 - Keyboard navigation
 - Color contrast (basic)
 
 ### Responsive Tests
+
 - Mobile viewport (375x667)
 - Tablet viewport (768x1024)
 - Desktop viewport (1920x1080)
 - Orientation changes
 
 ### Performance Tests
+
 - Network error handling
 - Offline functionality
 - Slow network simulation
@@ -137,23 +146,19 @@ Tests run on multiple browsers and devices:
 
 ### GitHub Actions
 
-The `.github/workflows/playwright.yml` file runs tests on:
-- Push to main/develop branches
-- Pull requests to main/develop branches
-
-Results are uploaded as artifacts for 30 days.
+No GitHub Actions workflow is currently committed in this repo. Until CI is added, run `nub run test` before merging changes.
 
 ### Running Tests in Different Environments
 
 ```bash
 # Local development
-bun run test
+nub run test
 
 # Staging environment
-BASE_URL=https://staging.moscloc.com bunx playwright test
+BASE_URL=https://staging.moscloc.com nub exec playwright test
 
 # Production smoke tests
-BASE_URL=https://moscloc.com bunx playwright test tests/home.spec.ts
+BASE_URL=https://moscloc.com nub exec playwright test tests/home.spec.ts
 ```
 
 ## Writing New Tests
@@ -161,26 +166,26 @@ BASE_URL=https://moscloc.com bunx playwright test tests/home.spec.ts
 ### Basic Test Structure
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test"
 
-test.describe('Feature Name', () => {
-  test('should do something', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('[data-testid="element"]')).toBeVisible();
-  });
-});
+test.describe("Feature Name", () => {
+	test("should do something", async ({ page }) => {
+		await page.goto("/")
+		await expect(page.locator('[data-testid="element"]')).toBeVisible()
+	})
+})
 ```
 
 ### Using Test Utilities
 
 ```typescript
-import { verifyHomePageComponents, selectors } from './utils';
+import { verifyHomePageComponents, selectors } from "./utils"
 
-test('should load properly', async ({ page }) => {
-  await page.goto('/');
-  await verifyHomePageComponents(page);
-  await expect(page.locator(selectors.prayerTimes)).toBeVisible();
-});
+test("should load properly", async ({ page }) => {
+	await page.goto("/")
+	await verifyHomePageComponents(page)
+	await expect(page.locator(selectors.prayerTimes)).toBeVisible()
+})
 ```
 
 ## Best Practices
@@ -196,17 +201,21 @@ test('should load properly', async ({ page }) => {
 ## Debugging Tests
 
 ### Visual Debugging
+
 ```bash
-bun run test:ui
+nub run test:ui
 ```
 
 ### Debug Mode
+
 ```bash
-bunx playwright test --debug tests/home.spec.ts
+nub exec playwright test --debug tests/home.spec.ts
 ```
 
 ### Screenshots and Videos
+
 Failed tests automatically capture:
+
 - Screenshots
 - Videos
 - Network traces
@@ -218,7 +227,7 @@ Failed tests automatically capture:
 1. **Test timeouts**: Increase timeout or wait for specific conditions
 2. **Element not found**: Check data-testid attributes are present
 3. **Flaky tests**: Add proper waits instead of fixed delays
-4. **Browser crashes**: Update browsers with `bunx playwright install`
+4. **Browser crashes**: Update browsers with `nub exec playwright install`
 
 ### Getting Help
 

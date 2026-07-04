@@ -41,10 +41,10 @@ export const useIslamicDate = (): IslamicDate => {
 					const hijriDate = data.data.hijri
 
 					setIslamicDate({
-						islamicDate: Number.parseInt(hijriDate.day),
+						islamicDate: Number.parseInt(hijriDate.day, 10),
 						islamicMonth:
-							islamicMonths[Number.parseInt(hijriDate.month.number) - 1],
-						islamicYear: Number.parseInt(hijriDate.year),
+							islamicMonths[Number.parseInt(hijriDate.month.number, 10) - 1],
+						islamicYear: Number.parseInt(hijriDate.year, 10),
 					})
 				}
 			} catch (error) {
@@ -52,7 +52,7 @@ export const useIslamicDate = (): IslamicDate => {
 			}
 		}
 
-		fetchIslamicDate()
+		void fetchIslamicDate()
 
 		// Update daily at midnight
 		const now = new Date()
@@ -62,13 +62,24 @@ export const useIslamicDate = (): IslamicDate => {
 
 		const msUntilMidnight = tomorrow.getTime() - now.getTime()
 
+		let dailyUpdateInterval: ReturnType<typeof setInterval> | undefined
+
 		const timeoutId = setTimeout(() => {
-			fetchIslamicDate()
-			const intervalId = setInterval(fetchIslamicDate, 24 * 60 * 60 * 1000)
-			return () => clearInterval(intervalId)
+			void fetchIslamicDate()
+			dailyUpdateInterval = setInterval(
+				() => {
+					void fetchIslamicDate()
+				},
+				24 * 60 * 60 * 1000,
+			)
 		}, msUntilMidnight)
 
-		return () => clearTimeout(timeoutId)
+		return () => {
+			clearTimeout(timeoutId)
+			if (dailyUpdateInterval) {
+				clearInterval(dailyUpdateInterval)
+			}
+		}
 	}, [])
 
 	return islamicDate

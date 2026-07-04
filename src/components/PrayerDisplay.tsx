@@ -24,6 +24,14 @@ const PrayerDisplay: React.FC = () => {
 
 	return (
 		<div className="relative min-h-screen overflow-hidden">
+			<button
+				type="button"
+				onClick={() => document.getElementById("main-content")?.focus()}
+				className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-emerald-900 focus:shadow-lg"
+			>
+				Lewati ke konten utama
+			</button>
+
 			{/* Background Image with Reduced Overlay */}
 			<div
 				className="absolute inset-0 bg-center bg-cover"
@@ -36,7 +44,11 @@ const PrayerDisplay: React.FC = () => {
 			</div>
 
 			{/* Main Content */}
-			<div className="relative z-10 flex min-h-screen flex-col">
+			<main
+				id="main-content"
+				tabIndex={-1}
+				className="relative z-10 flex min-h-screen flex-col"
+			>
 				{/* Header Section */}
 				<div className="flex-shrink-0 p-4 lg:p-6">
 					<div className="flex items-start justify-between">
@@ -47,9 +59,9 @@ const PrayerDisplay: React.FC = () => {
 									xmlns="http://www.w3.org/2000/svg"
 									fill="none"
 									stroke="currentColor"
-									stroke-width="16"
-									stroke-linecap="round"
-									stroke-linejoin="round"
+									strokeWidth="16"
+									strokeLinecap="round"
+									strokeLinejoin="round"
 									width="52"
 									height="52"
 									viewBox="0 0 256 256"
@@ -117,7 +129,7 @@ const PrayerDisplay: React.FC = () => {
 						</div>
 					</div>
 				</div>
-			</div>
+			</main>
 		</div>
 	)
 }

@@ -10,7 +10,7 @@ import {
 
 test.describe("Integration Tests", () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto("/")
+		await page.goto("/", { waitUntil: "domcontentloaded" })
 		await waitForLoadingComplete(page)
 	})
 

@@ -131,13 +131,13 @@ const PrayerTimes: React.FC = () => {
 						} `}
 					>
 						{isCurrentPrayer(prayer.name) && (
-							<div className="-top-3 -right-3 absolute animate-pulse rounded-full bg-red-400 px-3 py-2 font-bold text-sm text-white">
+							<div className="absolute -top-3 -right-3 animate-pulse rounded-full bg-red-400 px-3 py-2 font-bold text-sm text-white">
 								SEKARANG
 							</div>
 						)}
 
 						{isNextPrayer(prayer.name) && timeLeft && (
-							<div className="-right-3 -top-3 absolute rounded-full bg-emerald-600 px-3 py-2 font-bold font-mono text-sm text-white lg:text-lg">
+							<div className="absolute -top-3 -right-3 rounded-full bg-emerald-600 px-3 py-2 font-bold font-mono text-sm text-white lg:text-lg">
 								{timeLeft}
 							</div>
 						)}

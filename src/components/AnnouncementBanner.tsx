@@ -39,9 +39,9 @@ const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
 						className="flex transition-transform duration-500 ease-in-out"
 						style={{ transform: `translateX(-${currentIndex * 100}%)` }}
 					>
-						{announcements.map((announcement, index) => (
+						{announcements.map((announcement) => (
 							<div
-								key={`announcement-${index}-${announcement.slice(0, 20)}`}
+								key={`announcement-${announcement}`}
 								className="w-full flex-shrink-0 font-bold text-lg text-white lg:text-xl xl:text-2xl 2xl:text-3xl"
 							>
 								{announcement}
@@ -55,7 +55,7 @@ const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
 						{announcements.map((announcement, index) => (
 							<button
 								type="button"
-								key={`nav-${announcement.slice(0, 10)}-${index}`}
+								key={`nav-${announcement}`}
 								onClick={() => setCurrentIndex(index)}
 								className={`h-3 w-3 rounded-full transition-colors ${
 									index === currentIndex ? "bg-white" : "bg-white/30"

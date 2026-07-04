@@ -4,10 +4,10 @@ test.describe("API and Service Tests", () => {
 	test("should handle network errors gracefully", async ({ page }) => {
 		// Block only API requests, not page resources
 		await page.route("**/api.aladhan.com/**", (route) => {
-			route.abort()
+			void route.abort()
 		})
 
-		await page.goto("/")
+		await page.goto("/", { waitUntil: "domcontentloaded" })
 
 		// App should still load even if API calls fail
 		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
@@ -15,7 +15,7 @@ test.describe("API and Service Tests", () => {
 
 	test("should load with cached data when offline", async ({ page }) => {
 		// First, load the page normally to potentially cache data
-		await page.goto("/")
+		await page.goto("/", { waitUntil: "domcontentloaded" })
 		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
 
 		// Get initial prayer times content
@@ -33,11 +33,11 @@ test.describe("API and Service Tests", () => {
 		// Simulate slow network for API only
 		await page.route("**/api.aladhan.com/**", async (route) => {
 			await new Promise((resolve) => setTimeout(resolve, 1000)) // Add 1s delay
-			route.continue()
+			await route.continue()
 		})
 
 		const startTime = Date.now()
-		await page.goto("/")
+		await page.goto("/", { waitUntil: "domcontentloaded" })
 		const loadTime = Date.now() - startTime
 
 		// Should eventually load despite slow network
@@ -48,7 +48,7 @@ test.describe("API and Service Tests", () => {
 	})
 
 	test("should preserve state during browser refresh", async ({ page }) => {
-		await page.goto("/")
+		await page.goto("/", { waitUntil: "domcontentloaded" })
 		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
 
 		// Refresh page
