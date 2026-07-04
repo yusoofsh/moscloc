@@ -1,11 +1,23 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { beforeEach, describe, expect, it } from "vitest"
-import { PrayerProvider, usePrayerContext } from "./PrayerContext"
+import {
+	defaultPrayerTimes,
+	getCurrentAndNextPrayerForTime,
+	PrayerProvider,
+	usePrayerContext,
+} from "./PrayerContext"
 
 const wrapper = ({ children }: { children: ReactNode }) => (
 	<PrayerProvider>{children}</PrayerProvider>
 )
+
+type MockedStorageMethod = {
+	mock: { calls: unknown[] }
+}
+
+const localStorageSetItemCallCount = () =>
+	(localStorage.setItem as unknown as MockedStorageMethod).mock.calls.length
 
 describe("PrayerContext", () => {
 	beforeEach(() => {
@@ -48,7 +60,7 @@ describe("PrayerContext", () => {
 		})
 
 		expect(result.current.mosqueInfo).toEqual(newInfo)
-		expect(localStorage.setItem).toHaveBeenCalled()
+		expect(localStorageSetItemCallCount()).toBeGreaterThan(0)
 	})
 
 	it("updates announcements and persists to localStorage", () => {
@@ -61,7 +73,7 @@ describe("PrayerContext", () => {
 		})
 
 		expect(result.current.announcements).toEqual(newAnnouncements)
-		expect(localStorage.setItem).toHaveBeenCalled()
+		expect(localStorageSetItemCallCount()).toBeGreaterThan(0)
 	})
 
 	it("updates events and persists to localStorage", () => {
@@ -84,7 +96,7 @@ describe("PrayerContext", () => {
 		})
 
 		expect(result.current.events).toEqual(newEvents)
-		expect(localStorage.setItem).toHaveBeenCalled()
+		expect(localStorageSetItemCallCount()).toBeGreaterThan(0)
 	})
 
 	it("updates verses and persists to localStorage", () => {
@@ -104,7 +116,7 @@ describe("PrayerContext", () => {
 		})
 
 		expect(result.current.verses).toEqual(newVerses)
-		expect(localStorage.setItem).toHaveBeenCalled()
+		expect(localStorageSetItemCallCount()).toBeGreaterThan(0)
 	})
 
 	it("updates prayer settings and persists to localStorage", () => {
@@ -124,7 +136,7 @@ describe("PrayerContext", () => {
 		})
 
 		expect(result.current.prayerSettings).toEqual(newSettings)
-		expect(localStorage.setItem).toHaveBeenCalled()
+		expect(localStorageSetItemCallCount()).toBeGreaterThan(0)
 	})
 
 	it("updates iqamah intervals and persists to localStorage", () => {
@@ -143,7 +155,7 @@ describe("PrayerContext", () => {
 		})
 
 		expect(result.current.iqamahIntervals).toEqual(newIntervals)
-		expect(localStorage.setItem).toHaveBeenCalled()
+		expect(localStorageSetItemCallCount()).toBeGreaterThan(0)
 	})
 
 	it("calculates current and next prayer", async () => {
@@ -164,5 +176,64 @@ describe("PrayerContext", () => {
 		expect(result.current.iqamahIntervals).toBeDefined()
 		expect(result.current.iqamahIntervals.fajr).toBe(15)
 		expect(result.current.iqamahIntervals.maghrib).toBe(5)
+	})
+
+	it("loads saved mosque info from localStorage", async () => {
+		const savedInfo = {
+			name: "Masjid Persisten",
+			address: "Jalan Persisten",
+			contact: "0800000000",
+			latitude: -7,
+			longitude: 112,
+		}
+
+		localStorage.setItem("mosqueInfo", JSON.stringify(savedInfo))
+
+		const { result } = renderHook(() => usePrayerContext(), { wrapper })
+
+		await waitFor(() => {
+			expect(result.current.mosqueInfo).toEqual(savedInfo)
+		})
+	})
+
+	it("loads saved iqamah intervals from localStorage", async () => {
+		const savedIntervals = {
+			fajr: 11,
+			dhuhr: 12,
+			asr: 13,
+			maghrib: 4,
+			isha: 14,
+		}
+
+		localStorage.setItem("iqamahIntervals", JSON.stringify(savedIntervals))
+
+		const { result } = renderHook(() => usePrayerContext(), { wrapper })
+
+		await waitFor(() => {
+			expect(result.current.iqamahIntervals).toEqual(savedIntervals)
+		})
+	})
+
+	it("calculates current and next prayer at deterministic boundaries", () => {
+		expect(
+			getCurrentAndNextPrayerForTime(
+				defaultPrayerTimes,
+				new Date("2024-01-15T03:30:00"),
+			),
+		).toEqual({ currentPrayer: "Isya", nextPrayer: "Subuh" })
+
+		expect(
+			getCurrentAndNextPrayerForTime(
+				defaultPrayerTimes,
+				new Date("2024-01-15T04:30:00"),
+			),
+		).toEqual({ currentPrayer: "Subuh", nextPrayer: "Syuruq" })
+
+		expect(
+			getCurrentAndNextPrayerForTime(
+				defaultPrayerTimes,
+				new Date("2024-01-15T12:30:00"),
+			),
+		).toEqual({ currentPrayer: "Dzuhur", nextPrayer: "Ashar" })
 	})
 })

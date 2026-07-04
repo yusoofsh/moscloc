@@ -21,6 +21,7 @@ bun desktop:build      # Tauri desktop build
 **Mosque management app** - React 19 + TanStack Router + Tauri for prayer times, events, announcements, and Iqamah countdown.
 
 ### Stack
+
 - **Routing**: TanStack Router (file-based) - routes auto-generated to `src/routeTree.gen.ts` (never edit)
 - **State**: React Context (`PrayerContext`) + localStorage persistence
 - **Styling**: Tailwind CSS v4
@@ -30,23 +31,27 @@ bun desktop:build      # Tauri desktop build
 - **Linting**: Biome (tabs, double quotes, no semicolons)
 
 ### Routes
+
 - `/` → `PrayerDisplay` (main display)
 - `/admin` → `AdminPanel` (settings)
 - `/iqamah` → `IqamahCountdown` (countdown timer)
 
 ### Key Files
+
 - `src/contexts/PrayerContext.tsx` - Central state: mosque info, prayer times, events, verses, iqamah intervals
 - `src/services/prayerService.ts` - Aladhan API integration
 - `src/routes/__root.tsx` - Root layout with `PrayerProvider`
 - `src/components/AdminPanel.tsx` - Settings UI (largest component)
 
 ### Data Flow
+
 1. `PrayerContext` fetches prayer times from Aladhan API on mount + daily at midnight
 2. Current/next prayer updated every minute
 3. All settings persisted to localStorage
 4. Components consume via `usePrayerContext()` hook
 
 ### Defaults
+
 - Location: Malang, Indonesia (-8.0679373, 112.5988417)
 - Timezone: Asia/Jakarta
 - Prayer method: 20 (Custom)

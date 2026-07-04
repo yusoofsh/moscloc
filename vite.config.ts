@@ -9,23 +9,7 @@ export default defineConfig({
 	plugins: [
 		react(),
 		tailwindcss(),
-		tanstackRouter(),
-		// pwa({
-		// 	registerType: "autoUpdate",
-		// 	manifest: {
-		// 		name: "Moscloc",
-		// 		short_name: "moscloc",
-		// 		description: "Moscloc - PWA Application",
-		// 		theme_color: "#0c0c0c",
-		// 	},
-		// 	pwaAssets: {
-		// 		disabled: false,
-		// 		config: true,
-		// 	},
-		// 	devOptions: {
-		// 		enabled: true,
-		// 	},
-		// }),
+		tanstackRouter({ quoteStyle: "double", semicolons: true }),
 	],
 	resolve: {
 		alias: {

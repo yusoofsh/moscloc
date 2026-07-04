@@ -14,25 +14,25 @@ describe("CurrentTime", () => {
 	})
 
 	it("renders current time in HH:mm format", async () => {
-		render(<CurrentTime />)
+		await render(<CurrentTime />)
 
 		await expect.element(page.getByText("14:30")).toBeVisible()
 	})
 
 	it("has correct test id", async () => {
-		render(<CurrentTime />)
+		await render(<CurrentTime />)
 
 		await expect.element(page.getByTestId("current-time")).toBeVisible()
 	})
 
 	it("displays date in Indonesian locale", async () => {
-		render(<CurrentTime />)
+		await render(<CurrentTime />)
 
 		await expect.element(page.getByText(/Senin/i)).toBeVisible()
 	})
 
 	it("displays month and year", async () => {
-		render(<CurrentTime />)
+		await render(<CurrentTime />)
 
 		await expect.element(page.getByText(/Januari/i)).toBeVisible()
 		await expect.element(page.getByText(/2024/i)).toBeVisible()

@@ -10,7 +10,7 @@ import {
 } from "react"
 import { getPrayerTimes } from "../services/prayerService"
 
-interface MosqueInfo {
+export interface MosqueInfo {
 	name: string
 	address: string
 	contact: string
@@ -52,7 +52,7 @@ export interface IqamahIntervals {
 	isha: number
 }
 
-interface PrayerTimes {
+export interface PrayerTimes {
 	fajr: string
 	sunrise: string
 	dhuhr: string
@@ -115,6 +115,47 @@ export const defaultIqamahIntervals: IqamahIntervals = {
 	isha: 10,
 }
 
+export const defaultAnnouncements = [
+	"Shalat Tarawih berjamaah setiap malam selama bulan Ramadhan",
+]
+
+export const defaultEvents: Event[] = []
+
+export const getCurrentAndNextPrayerForTime = (
+	times: PrayerTimes,
+	now = new Date(),
+): { currentPrayer: string; nextPrayer: string } => {
+	const currentTime = now.getHours() * 60 + now.getMinutes()
+
+	const prayerSchedule = [
+		{ name: "Subuh", time: times.fajr },
+		{ name: "Syuruq", time: times.sunrise },
+		{ name: "Dzuhur", time: times.dhuhr },
+		{ name: "Ashar", time: times.asr },
+		{ name: "Maghrib", time: times.maghrib },
+		{ name: "Isya", time: times.isha },
+	]
+
+	const prayerMinutes = prayerSchedule.map((prayer) => {
+		const [hours, minutes] = prayer.time.split(":").map(Number)
+		return {
+			name: prayer.name,
+			minutes: hours * 60 + minutes,
+		}
+	})
+
+	for (let i = 0; i < prayerMinutes.length - 1; i++) {
+		const prayer = prayerMinutes[i]
+		const nextPrayer = prayerMinutes[i + 1]
+
+		if (currentTime >= prayer.minutes && currentTime < nextPrayer.minutes) {
+			return { currentPrayer: prayer.name, nextPrayer: nextPrayer.name }
+		}
+	}
+
+	return { currentPrayer: "Isya", nextPrayer: "Subuh" }
+}
+
 export const defaultVerses: Verse[] = [
 	{
 		id: "1",
@@ -158,10 +199,9 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 	const [prayerTimes, setPrayerTimes] =
 		useState<PrayerTimes>(defaultPrayerTimes)
 	const prayerTimesRef = useRef<PrayerTimes>(defaultPrayerTimes)
-	const [announcements, setAnnouncements] = useState<string[]>([
-		"Shalat Tarawih berjamaah setiap malam selama bulan Ramadhan",
-	])
-	const [events, setEvents] = useState<Event[]>([])
+	const [announcements, setAnnouncements] =
+		useState<string[]>(defaultAnnouncements)
+	const [events, setEvents] = useState<Event[]>(defaultEvents)
 	const [verses, setVerses] = useState<Verse[]>(defaultVerses)
 	const [prayerSettings, setPrayerSettings] = useState<PrayerSettings>(
 		defaultPrayerSettings,
@@ -173,52 +213,10 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 	const [nextPrayer, setNextPrayer] = useState<string | null>(null)
 
 	const getCurrentAndNextPrayer = useCallback((times: PrayerTimes) => {
-		const now = new Date()
-		const currentTime = now.getHours() * 60 + now.getMinutes()
+		const { currentPrayer, nextPrayer } = getCurrentAndNextPrayerForTime(times)
 
-		const prayerSchedule = [
-			{ name: "Subuh", time: times.fajr },
-			{ name: "Syuruq", time: times.sunrise },
-			{ name: "Dzuhur", time: times.dhuhr },
-			{ name: "Ashar", time: times.asr },
-			{ name: "Maghrib", time: times.maghrib },
-			{ name: "Isya", time: times.isha },
-		]
-
-		const prayerMinutes = prayerSchedule.map((prayer) => {
-			const [hours, minutes] = prayer.time.split(":").map(Number)
-			return {
-				name: prayer.name,
-				minutes: hours * 60 + minutes,
-			}
-		})
-
-		// Find current and next prayer
-		let current = null
-		let next = null
-
-		for (let i = 0; i < prayerMinutes.length; i++) {
-			const prayer = prayerMinutes[i]
-			const nextPrayerIndex = (i + 1) % prayerMinutes.length
-
-			if (
-				currentTime >= prayer.minutes &&
-				currentTime < prayerMinutes[nextPrayerIndex].minutes
-			) {
-				current = prayer.name
-				next = prayerMinutes[nextPrayerIndex].name
-				break
-			}
-		}
-
-		// If no current prayer found, we're after Isha
-		if (!current) {
-			current = "Isya"
-			next = "Subuh"
-		}
-
-		setCurrentPrayer(current)
-		setNextPrayer(next)
+		setCurrentPrayer(currentPrayer)
+		setNextPrayer(nextPrayer)
 	}, [])
 
 	useEffect(() => {
@@ -238,7 +236,7 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 			}
 		}
 
-		fetchPrayerTimes()
+		void fetchPrayerTimes()
 
 		// Update prayer times daily at midnight
 		const now = new Date()
@@ -248,13 +246,18 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 
 		const msUntilMidnight = tomorrow.getTime() - now.getTime()
 
+		let dailyUpdateInterval: ReturnType<typeof setInterval> | undefined
+
 		const timeoutId = setTimeout(() => {
-			fetchPrayerTimes()
+			void fetchPrayerTimes()
 
 			// Set up daily interval
-			const intervalId = setInterval(fetchPrayerTimes, 24 * 60 * 60 * 1000)
-
-			return () => clearInterval(intervalId)
+			dailyUpdateInterval = setInterval(
+				() => {
+					void fetchPrayerTimes()
+				},
+				24 * 60 * 60 * 1000,
+			)
 		}, msUntilMidnight)
 
 		// Update current/next prayer every minute
@@ -264,6 +267,9 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 
 		return () => {
 			clearTimeout(timeoutId)
+			if (dailyUpdateInterval) {
+				clearInterval(dailyUpdateInterval)
+			}
 			clearInterval(prayerUpdateInterval)
 		}
 	}, [

@@ -10,13 +10,201 @@ import {
 } from "lucide-react"
 import type React from "react"
 import { useEffect, useId, useState } from "react"
+import { Button } from "~/components/ui/button"
 import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "~/components/ui/card"
+import { Field, FieldDescription, FieldLabel } from "~/components/ui/field"
+import { Input } from "~/components/ui/input"
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "~/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
+import { Textarea } from "~/components/ui/textarea"
+import {
+	defaultAnnouncements,
+	defaultEvents,
+	defaultIqamahIntervals,
+	defaultMosqueInfo,
+	defaultPrayerSettings,
+	defaultVerses,
 	type Event,
 	type IqamahIntervals,
 	type PrayerSettings,
 	usePrayerContext,
 	type Verse,
 } from "../contexts/PrayerContext"
+import {
+	normalizeAnnouncementInput,
+	validateIqamahIntervals,
+	validateMosqueInfo,
+} from "../lib/adminPanelLogic"
+
+interface SelectOption {
+	value: string
+	label: string
+}
+
+interface TextInputFieldProps extends Omit<
+	React.ComponentProps<typeof Input>,
+	"id"
+> {
+	id: string
+	label: string
+	description?: React.ReactNode
+	fieldClassName?: string
+}
+
+interface TextareaFieldProps extends Omit<
+	React.ComponentProps<typeof Textarea>,
+	"id"
+> {
+	id: string
+	label: string
+	description?: React.ReactNode
+	fieldClassName?: string
+}
+
+interface SelectFieldProps {
+	id: string
+	label: string
+	value: string
+	options: SelectOption[]
+	onValueChange: (value: string) => void
+	description?: React.ReactNode
+}
+
+const adminTabs = [
+	{ value: "mosque", label: "Informasi Masjid" },
+	{ value: "announcements", label: "Pengumuman" },
+	{ value: "events", label: "Acara Komunitas" },
+	{ value: "verses", label: "Ayat Al-Quran" },
+	{ value: "prayer-settings", label: "Pengaturan Shalat" },
+	{ value: "iqamah", label: "Waktu Iqamah" },
+	{ value: "settings", label: "Pengaturan" },
+]
+
+const prayerMethodOptions: SelectOption[] = [
+	{ value: "1", label: "University of Islamic Sciences, Karachi" },
+	{ value: "2", label: "Islamic Society of North America" },
+	{ value: "3", label: "Muslim World League" },
+	{ value: "4", label: "Umm Al-Qura University, Makkah" },
+	{ value: "5", label: "Egyptian General Authority of Survey" },
+	{ value: "7", label: "Institute of Geophysics, University of Tehran" },
+	{ value: "8", label: "Gulf Region" },
+	{ value: "9", label: "Kuwait" },
+	{ value: "10", label: "Qatar" },
+	{ value: "11", label: "Majlis Ugama Islam Singapura, Singapore" },
+	{ value: "12", label: "Union Organization islamic de France" },
+	{ value: "13", label: "Diyanet İşleri Başkanlığı, Turkey" },
+	{ value: "14", label: "Spiritual Administration of Muslims of Russia" },
+	{ value: "15", label: "Moonsighting Committee Worldwide" },
+	{ value: "16", label: "Dubai (unofficial)" },
+	{ value: "20", label: "Custom (Kementerian Agama RI)" },
+]
+
+const shafaqOptions: SelectOption[] = [
+	{ value: "general", label: "General" },
+	{ value: "red", label: "Red" },
+	{ value: "white", label: "White" },
+]
+
+const schoolOptions: SelectOption[] = [
+	{ value: "0", label: "Shafi" },
+	{ value: "1", label: "Hanafi" },
+]
+
+const midnightModeOptions: SelectOption[] = [
+	{ value: "0", label: "Standard (Mid Sunset to Sunrise)" },
+	{ value: "1", label: "Jafari (Mid Sunset to Fajr)" },
+]
+
+const timezoneOptions: SelectOption[] = [
+	{ value: "Asia/Jakarta", label: "WIB (Asia/Jakarta)" },
+	{ value: "Asia/Makassar", label: "WITA (Asia/Makassar)" },
+	{ value: "Asia/Jayapura", label: "WIT (Asia/Jayapura)" },
+]
+
+const iqamahFields: Array<{
+	key: keyof IqamahIntervals
+	label: string
+}> = [
+	{ key: "fajr", label: "Subuh (Fajr)" },
+	{ key: "dhuhr", label: "Dzuhur (Dhuhr)" },
+	{ key: "asr", label: "Ashar (Asr)" },
+	{ key: "maghrib", label: "Maghrib" },
+	{ key: "isha", label: "Isya (Isha)" },
+]
+
+function TextInputField({
+	id,
+	label,
+	description,
+	fieldClassName,
+	...props
+}: TextInputFieldProps) {
+	return (
+		<Field className={fieldClassName}>
+			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<Input id={id} {...props} />
+			{description && <FieldDescription>{description}</FieldDescription>}
+		</Field>
+	)
+}
+
+function TextareaField({
+	id,
+	label,
+	description,
+	fieldClassName,
+	...props
+}: TextareaFieldProps) {
+	return (
+		<Field className={fieldClassName}>
+			<FieldLabel htmlFor={id}>{label}</FieldLabel>
+			<Textarea id={id} {...props} />
+			{description && <FieldDescription>{description}</FieldDescription>}
+		</Field>
+	)
+}
+
+function SelectField({
+	id,
+	label,
+	value,
+	options,
+	onValueChange,
+	description,
+}: SelectFieldProps) {
+	const labelId = `${id}-label`
+
+	return (
+		<Field>
+			<FieldLabel id={labelId}>{label}</FieldLabel>
+			<Select value={value} onValueChange={onValueChange}>
+				<SelectTrigger id={id} aria-labelledby={labelId} className="w-full">
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+					{options.map((option) => (
+						<SelectItem key={option.value} value={option.value}>
+							{option.label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+			{description && <FieldDescription>{description}</FieldDescription>}
+		</Field>
+	)
+}
 
 const AdminPanel: React.FC = () => {
 	const {
@@ -36,12 +224,12 @@ const AdminPanel: React.FC = () => {
 	const [activeTab, setActiveTab] = useState("mosque")
 	const [formData, setFormData] = useState(mosqueInfo)
 
-	// Generate unique IDs for form controls
 	const nameId = useId()
 	const contactId = useId()
 	const addressId = useId()
 	const latitudeId = useId()
 	const longitudeId = useId()
+	const announcementId = useId()
 	const eventTitleId = useId()
 	const eventDateId = useId()
 	const eventTimeId = useId()
@@ -62,7 +250,13 @@ const AdminPanel: React.FC = () => {
 	const asrIqamahId = useId()
 	const maghribIqamahId = useId()
 	const ishaIqamahId = useId()
-	const _redirectDelayId = useId()
+	const iqamahInputIds: Record<keyof IqamahIntervals, string> = {
+		fajr: fajrIqamahId,
+		dhuhr: dhuhrIqamahId,
+		asr: asrIqamahId,
+		maghrib: maghribIqamahId,
+		isha: ishaIqamahId,
+	}
 	const [announcementList, setAnnouncementList] = useState(announcements)
 	const [newAnnouncement, setNewAnnouncement] = useState("")
 	const [eventList, setEventList] = useState(events)
@@ -89,20 +283,28 @@ const AdminPanel: React.FC = () => {
 	const [iqamahIntervalsForm, setIqamahIntervalsForm] =
 		useState<IqamahIntervals>(iqamahIntervals)
 
-	// Sync forms with context data
 	useEffect(() => {
 		setPrayerSettingsForm(prayerSettings)
 		setIqamahIntervalsForm(iqamahIntervals)
 	}, [prayerSettings, iqamahIntervals])
 
 	const handleSaveMosqueInfo = () => {
-		updateMosqueInfo(formData)
+		const validation = validateMosqueInfo(formData)
+
+		if (!validation.ok) {
+			alert(validation.errors.join("\n"))
+			return
+		}
+
+		updateMosqueInfo(validation.value)
 		alert("Informasi masjid berhasil diperbarui!")
 	}
 
 	const handleAddAnnouncement = () => {
-		if (newAnnouncement.trim()) {
-			const updated = [...announcementList, newAnnouncement.trim()]
+		const announcement = normalizeAnnouncementInput(newAnnouncement)
+
+		if (announcement) {
+			const updated = [...announcementList, announcement]
 			setAnnouncementList(updated)
 			updateAnnouncements(updated)
 			setNewAnnouncement("")
@@ -275,452 +477,337 @@ const AdminPanel: React.FC = () => {
 	}
 
 	const handleSaveIqamahIntervals = () => {
-		updateIqamahIntervals(iqamahIntervalsForm)
+		const validation = validateIqamahIntervals(iqamahIntervalsForm)
+
+		if (!validation.ok) {
+			alert(validation.errors.join("\n"))
+			return
+		}
+
+		updateIqamahIntervals(validation.value)
 		alert("Pengaturan iqamah berhasil diperbarui!")
 	}
 
+	const handleResetDefaults = () => {
+		setFormData(defaultMosqueInfo)
+		setAnnouncementList(defaultAnnouncements)
+		setNewAnnouncement("")
+		setEventList(defaultEvents)
+		setShowEventForm(false)
+		setEditingEvent(null)
+		setEventForm({
+			title: "",
+			date: "",
+			time: "",
+			location: "",
+			image: "",
+			description: "",
+		})
+		setVerseList(defaultVerses)
+		setShowVerseForm(false)
+		setEditingVerse(null)
+		setVerseForm({
+			arabic: "",
+			translation: "",
+			reference: "",
+		})
+		setPrayerSettingsForm(defaultPrayerSettings)
+		setIqamahIntervalsForm(defaultIqamahIntervals)
+
+		updateMosqueInfo(defaultMosqueInfo)
+		updateAnnouncements(defaultAnnouncements)
+		updateEvents(defaultEvents)
+		updateVerses(defaultVerses)
+		updatePrayerSettings(defaultPrayerSettings)
+		updateIqamahIntervals(defaultIqamahIntervals)
+		alert("Pengaturan berhasil dikembalikan ke default!")
+	}
+
 	return (
-		<div className="min-h-screen bg-gray-100" data-testid="admin-panel">
-			{/* Header */}
-			<div className="border-b bg-white shadow-sm">
+		<div className="min-h-screen bg-muted/40" data-testid="admin-panel">
+			<div className="border-b bg-background shadow-sm">
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<div className="flex h-16 items-center justify-between">
 						<div className="flex items-center gap-4">
-							<button
+							<Button
 								type="button"
+								variant="ghost"
+								size="icon"
+								aria-label="Kembali ke tampilan utama"
 								onClick={() => {
 									window.location.href = "/"
 								}}
-								className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
 							>
-								<ArrowLeft size={20} />
-							</button>
-							<h1 className="font-bold text-2xl text-gray-900">Pengaturan</h1>
+								<ArrowLeft />
+							</Button>
+							<h1 className="font-bold text-2xl text-foreground">Pengaturan</h1>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-				{/* Tabs */}
-				<div className="mb-8 rounded-lg bg-white shadow-sm">
-					<div className="border-gray-200 border-b">
-						<nav className="-mb-px flex space-x-8">
-							<button
-								type="button"
-								onClick={() => setActiveTab("mosque")}
-								className={`border-b-2 px-6 py-4 font-medium text-sm ${
-									activeTab === "mosque"
-										? "border-emerald-500 text-emerald-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
-								}`}
-							>
-								Informasi Masjid
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("announcements")}
-								className={`border-b-2 px-6 py-4 font-medium text-sm ${
-									activeTab === "announcements"
-										? "border-emerald-500 text-emerald-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
-								}`}
-							>
-								Pengumuman
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("events")}
-								className={`border-b-2 px-6 py-4 font-medium text-sm ${
-									activeTab === "events"
-										? "border-emerald-500 text-emerald-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
-								}`}
-							>
-								Acara Komunitas
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("verses")}
-								className={`border-b-2 px-6 py-4 font-medium text-sm ${
-									activeTab === "verses"
-										? "border-emerald-500 text-emerald-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
-								}`}
-							>
-								Ayat Al-Quran
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("prayer-settings")}
-								className={`border-b-2 px-6 py-4 font-medium text-sm ${
-									activeTab === "prayer-settings"
-										? "border-emerald-500 text-emerald-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
-								}`}
-							>
-								Pengaturan Shalat
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("iqamah")}
-								className={`border-b-2 px-6 py-4 font-medium text-sm ${
-									activeTab === "iqamah"
-										? "border-emerald-500 text-emerald-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
-								}`}
-							>
-								Waktu Iqamah
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("settings")}
-								className={`border-b-2 px-6 py-4 font-medium text-sm ${
-									activeTab === "settings"
-										? "border-emerald-500 text-emerald-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
-								}`}
-							>
-								Pengaturan
-							</button>
-						</nav>
-					</div>
+				<Tabs
+					value={activeTab}
+					onValueChange={setActiveTab}
+					className="space-y-6"
+				>
+					<TabsList className="h-auto w-full flex-wrap justify-start">
+						{adminTabs.map((tab) => (
+							<TabsTrigger key={tab.value} value={tab.value}>
+								{tab.label}
+							</TabsTrigger>
+						))}
+					</TabsList>
 
-					<div className="p-6">
-						{activeTab === "mosque" && (
-							<div className="space-y-6">
-								<h2 className="font-semibold text-gray-900 text-xl">
-									Informasi Masjid
-								</h2>
-
+					<TabsContent value="mosque">
+						<Card>
+							<CardHeader>
+								<CardTitle>Informasi Masjid</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-6">
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-									<div>
-										<label
-											htmlFor={nameId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Nama Masjid
-										</label>
-										<input
-											id={nameId}
-											type="text"
-											value={formData.name}
-											onChange={(e) =>
-												setFormData({ ...formData, name: e.target.value })
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										/>
-									</div>
-
-									<div>
-										<label
-											htmlFor={contactId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Informasi Kontak
-										</label>
-										<input
-											id={contactId}
-											type="text"
-											value={formData.contact}
-											onChange={(e) =>
-												setFormData({ ...formData, contact: e.target.value })
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										/>
-									</div>
-
-									<div className="md:col-span-2">
-										<label
-											htmlFor={addressId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Alamat
-										</label>
-										<textarea
-											id={addressId}
-											value={formData.address}
-											onChange={(e) =>
-												setFormData({ ...formData, address: e.target.value })
-											}
-											rows={3}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										/>
-									</div>
-
-									<div>
-										<label
-											htmlFor={latitudeId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Lintang (Latitude)
-										</label>
-										<input
-											id={latitudeId}
-											type="number"
-											step="any"
-											value={formData.latitude}
-											onChange={(e) =>
-												setFormData({
-													...formData,
-													latitude: Number.parseFloat(e.target.value),
-												})
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										/>
-									</div>
-
-									<div>
-										<label
-											htmlFor={longitudeId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Bujur (Longitude)
-										</label>
-										<input
-											id={longitudeId}
-											type="number"
-											step="any"
-											value={formData.longitude}
-											onChange={(e) =>
-												setFormData({
-													...formData,
-													longitude: Number.parseFloat(e.target.value),
-												})
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										/>
-									</div>
-								</div>
-
-								<button
-									type="button"
-									onClick={handleSaveMosqueInfo}
-									className="flex items-center gap-2 rounded-md bg-emerald-600 px-6 py-2 text-white transition-colors hover:bg-emerald-700"
-								>
-									<Save size={16} />
-									Simpan Perubahan
-								</button>
-							</div>
-						)}
-
-						{activeTab === "announcements" && (
-							<div className="space-y-6">
-								<h2 className="font-semibold text-gray-900 text-xl">
-									Kelola Pengumuman
-								</h2>
-
-								<div className="flex gap-4">
-									<input
+									<TextInputField
+										id={nameId}
+										label="Nama Masjid"
 										type="text"
-										value={newAnnouncement}
-										onChange={(e) => setNewAnnouncement(e.target.value)}
-										placeholder="Masukkan pengumuman baru..."
-										className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+										value={formData.name}
+										onChange={(event) =>
+											setFormData({ ...formData, name: event.target.value })
+										}
 									/>
-									<button
+									<TextInputField
+										id={contactId}
+										label="Informasi Kontak"
+										type="text"
+										value={formData.contact}
+										onChange={(event) =>
+											setFormData({ ...formData, contact: event.target.value })
+										}
+									/>
+									<TextareaField
+										id={addressId}
+										label="Alamat"
+										value={formData.address}
+										onChange={(event) =>
+											setFormData({ ...formData, address: event.target.value })
+										}
+										rows={3}
+										fieldClassName="md:col-span-2"
+									/>
+									<TextInputField
+										id={latitudeId}
+										label="Lintang (Latitude)"
+										type="number"
+										step="any"
+										value={formData.latitude}
+										onChange={(event) =>
+											setFormData({
+												...formData,
+												latitude: Number.parseFloat(event.target.value),
+											})
+										}
+									/>
+									<TextInputField
+										id={longitudeId}
+										label="Bujur (Longitude)"
+										type="number"
+										step="any"
+										value={formData.longitude}
+										onChange={(event) =>
+											setFormData({
+												...formData,
+												longitude: Number.parseFloat(event.target.value),
+											})
+										}
+									/>
+								</div>
+								<Button type="button" onClick={handleSaveMosqueInfo}>
+									<Save />
+									Simpan Perubahan
+								</Button>
+							</CardContent>
+						</Card>
+					</TabsContent>
+
+					<TabsContent value="announcements">
+						<Card>
+							<CardHeader>
+								<CardTitle>Kelola Pengumuman</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								<div className="flex flex-col gap-3 sm:flex-row">
+									<Field className="flex-1">
+										<FieldLabel htmlFor={announcementId}>
+											Pengumuman Baru
+										</FieldLabel>
+										<Input
+											id={announcementId}
+											type="text"
+											value={newAnnouncement}
+											onChange={(event) =>
+												setNewAnnouncement(event.target.value)
+											}
+											placeholder="Masukkan pengumuman baru..."
+										/>
+									</Field>
+									<Button
 										type="button"
 										onClick={handleAddAnnouncement}
-										className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
+										className="self-end"
 									>
-										<Plus size={16} />
+										<Plus />
 										Tambah
-									</button>
+									</Button>
 								</div>
 
 								<div className="space-y-3">
 									{announcementList.map((announcement, index) => (
 										<div
-											key={`announcement-${announcement.slice(0, 20)}-${index}`}
-											className="flex items-center gap-4 rounded-md bg-gray-50 p-4"
+											key={announcement}
+											className="flex items-center gap-4 rounded-md border bg-muted/50 p-4"
 										>
-											<div className="flex-1 text-gray-900">{announcement}</div>
-											<button
+											<div className="flex-1 text-foreground">
+												{announcement}
+											</div>
+											<Button
 												type="button"
+												variant="ghost"
+												size="icon"
+												aria-label={`Hapus pengumuman ${index + 1}`}
 												onClick={() => handleDeleteAnnouncement(index)}
-												className="text-red-600 transition-colors hover:text-red-800"
+												className="text-destructive hover:text-destructive"
 											>
-												<Trash2 size={16} />
-											</button>
+												<Trash2 />
+											</Button>
 										</div>
 									))}
 									{announcementList.length === 0 && (
-										<div className="py-8 text-center text-gray-500">
+										<div className="py-8 text-center text-muted-foreground">
 											Belum ada pengumuman. Tambahkan pengumuman di atas.
 										</div>
 									)}
 								</div>
-							</div>
-						)}
+							</CardContent>
+						</Card>
+					</TabsContent>
 
-						{activeTab === "events" && (
-							<div className="space-y-6">
-								<div className="flex items-center justify-between">
-									<h2 className="font-semibold text-gray-900 text-xl">
-										Kelola Acara Komunitas
-									</h2>
-									<button
-										type="button"
-										onClick={() => setShowEventForm(true)}
-										className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
-									>
-										<Plus size={16} />
-										Tambah Acara
-									</button>
-								</div>
-
+					<TabsContent value="events">
+						<Card>
+							<CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between">
+								<CardTitle>Kelola Acara Komunitas</CardTitle>
+								<Button type="button" onClick={() => setShowEventForm(true)}>
+									<Plus />
+									Tambah Acara
+								</Button>
+							</CardHeader>
+							<CardContent className="space-y-6">
 								{showEventForm && (
-									<div className="rounded-lg bg-gray-50 p-6">
-										<h3 className="mb-4 font-medium text-gray-900 text-lg">
+									<div className="rounded-lg border bg-muted/40 p-6">
+										<h3 className="mb-4 font-medium text-foreground text-lg">
 											{editingEvent ? "Edit Acara" : "Tambah Acara Baru"}
 										</h3>
 
 										<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-											<div>
-												<label
-													htmlFor={eventTitleId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													Judul Acara
-												</label>
-												<input
-													id={eventTitleId}
-													type="text"
-													value={eventForm.title}
-													onChange={(e) =>
-														setEventForm({
-															...eventForm,
-															title: e.target.value,
-														})
-													}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="Masukkan judul acara"
-												/>
-											</div>
-
-											<div>
-												<label
-													htmlFor={eventDateId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													Tanggal
-												</label>
-												<input
-													id={eventDateId}
-													type="text"
-													value={eventForm.date}
-													onChange={(e) =>
-														setEventForm({ ...eventForm, date: e.target.value })
-													}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="Contoh: Setiap Kamis"
-												/>
-											</div>
-
-											<div>
-												<label
-													htmlFor={eventTimeId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													Waktu
-												</label>
-												<input
-													id={eventTimeId}
-													type="text"
-													value={eventForm.time}
-													onChange={(e) =>
-														setEventForm({ ...eventForm, time: e.target.value })
-													}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="Contoh: Ba'da Maghrib"
-												/>
-											</div>
-
-											<div>
-												<label
-													htmlFor={eventLocationId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													Lokasi
-												</label>
-												<input
-													id={eventLocationId}
-													type="text"
-													value={eventForm.location}
-													onChange={(e) =>
-														setEventForm({
-															...eventForm,
-															location: e.target.value,
-														})
-													}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="Contoh: Ruang Utama Masjid"
-												/>
-											</div>
-
-											<div className="md:col-span-2">
-												<label
-													htmlFor={eventImageId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													URL Gambar
-												</label>
-												<input
-													id={eventImageId}
-													type="url"
-													value={eventForm.image}
-													onChange={(e) =>
-														setEventForm({
-															...eventForm,
-															image: e.target.value,
-														})
-													}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="https://example.com/image.jpg"
-												/>
-											</div>
-
-											<div className="md:col-span-2">
-												<label
-													htmlFor={eventDescriptionId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													Deskripsi
-												</label>
-												<textarea
-													id={eventDescriptionId}
-													value={eventForm.description}
-													onChange={(e) =>
-														setEventForm({
-															...eventForm,
-															description: e.target.value,
-														})
-													}
-													rows={3}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="Deskripsi singkat tentang acara"
-												/>
-											</div>
+											<TextInputField
+												id={eventTitleId}
+												label="Judul Acara"
+												type="text"
+												value={eventForm.title}
+												onChange={(event) =>
+													setEventForm({
+														...eventForm,
+														title: event.target.value,
+													})
+												}
+												placeholder="Masukkan judul acara"
+											/>
+											<TextInputField
+												id={eventDateId}
+												label="Tanggal"
+												type="text"
+												value={eventForm.date}
+												onChange={(event) =>
+													setEventForm({
+														...eventForm,
+														date: event.target.value,
+													})
+												}
+												placeholder="Contoh: Setiap Kamis"
+											/>
+											<TextInputField
+												id={eventTimeId}
+												label="Waktu"
+												type="text"
+												value={eventForm.time}
+												onChange={(event) =>
+													setEventForm({
+														...eventForm,
+														time: event.target.value,
+													})
+												}
+												placeholder="Contoh: Ba'da Maghrib"
+											/>
+											<TextInputField
+												id={eventLocationId}
+												label="Lokasi"
+												type="text"
+												value={eventForm.location}
+												onChange={(event) =>
+													setEventForm({
+														...eventForm,
+														location: event.target.value,
+													})
+												}
+												placeholder="Contoh: Ruang Utama Masjid"
+											/>
+											<TextInputField
+												id={eventImageId}
+												label="URL Gambar"
+												type="url"
+												value={eventForm.image}
+												onChange={(event) =>
+													setEventForm({
+														...eventForm,
+														image: event.target.value,
+													})
+												}
+												placeholder="https://example.com/image.jpg"
+												fieldClassName="md:col-span-2"
+											/>
+											<TextareaField
+												id={eventDescriptionId}
+												label="Deskripsi"
+												value={eventForm.description}
+												onChange={(event) =>
+													setEventForm({
+														...eventForm,
+														description: event.target.value,
+													})
+												}
+												rows={3}
+												placeholder="Deskripsi singkat tentang acara"
+												fieldClassName="md:col-span-2"
+											/>
 										</div>
 
 										<div className="mt-6 flex gap-3">
-											<button
+											<Button
 												type="button"
 												onClick={
 													editingEvent ? handleUpdateEvent : handleAddEvent
 												}
-												className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
 											>
-												<Save size={16} />
+												<Save />
 												{editingEvent ? "Update Acara" : "Simpan Acara"}
-											</button>
-											<button
+											</Button>
+											<Button
 												type="button"
+												variant="outline"
 												onClick={handleCancelEventForm}
-												className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
 											>
 												Batal
-											</button>
+											</Button>
 										</div>
 									</div>
 								)}
@@ -729,21 +816,21 @@ const AdminPanel: React.FC = () => {
 									{eventList.map((event) => (
 										<div
 											key={event.id}
-											className="flex gap-4 rounded-lg bg-gray-50 p-4"
+											className="flex gap-4 rounded-lg border bg-muted/50 p-4"
 										>
 											{event.image && (
 												<img
 													src={event.image}
 													alt={event.title}
-													className="h-20 w-20 rounded-lg object-cover"
+													className="size-20 rounded-lg object-cover"
 												/>
 											)}
 
 											<div className="flex-1">
-												<h4 className="font-medium text-gray-900">
+												<h4 className="font-medium text-foreground">
 													{event.title}
 												</h4>
-												<div className="mt-2 space-y-1 text-gray-600 text-sm">
+												<div className="mt-2 space-y-1 text-muted-foreground text-sm">
 													<div className="flex items-center gap-2">
 														<Calendar size={14} />
 														<span>{event.date}</span>
@@ -758,594 +845,368 @@ const AdminPanel: React.FC = () => {
 													</div>
 												</div>
 												{event.description && (
-													<p className="mt-2 text-gray-600 text-sm">
+													<p className="mt-2 text-muted-foreground text-sm">
 														{event.description}
 													</p>
 												)}
 											</div>
 
 											<div className="flex gap-2">
-												<button
+												<Button
 													type="button"
+													variant="ghost"
+													size="icon"
+													aria-label={`Edit acara ${event.title}`}
 													onClick={() => handleEditEvent(event)}
-													className="text-emerald-600 transition-colors hover:text-emerald-800"
 												>
-													<Edit2 size={16} />
-												</button>
-												<button
+													<Edit2 />
+												</Button>
+												<Button
 													type="button"
+													variant="ghost"
+													size="icon"
+													aria-label={`Hapus acara ${event.title}`}
 													onClick={() => handleDeleteEvent(event.id)}
-													className="text-red-600 transition-colors hover:text-red-800"
+													className="text-destructive hover:text-destructive"
 												>
-													<Trash2 size={16} />
-												</button>
+													<Trash2 />
+												</Button>
 											</div>
 										</div>
 									))}
 
 									{eventList.length === 0 && (
-										<div className="py-8 text-center text-gray-500">
+										<div className="py-8 text-center text-muted-foreground">
 											Belum ada acara komunitas. Tambahkan acara di atas.
 										</div>
 									)}
 								</div>
-							</div>
-						)}
+							</CardContent>
+						</Card>
+					</TabsContent>
 
-						{activeTab === "verses" && (
-							<div className="space-y-6">
-								<div className="flex items-center justify-between">
-									<h2 className="font-semibold text-gray-900 text-xl">
-										Kelola Ayat Al-Quran
-									</h2>
-									<button
-										type="button"
-										onClick={() => setShowVerseForm(true)}
-										className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
-									>
-										<Plus size={16} />
-										Tambah Ayat
-									</button>
-								</div>
-
+					<TabsContent value="verses">
+						<Card>
+							<CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between">
+								<CardTitle>Kelola Ayat Al-Quran</CardTitle>
+								<Button type="button" onClick={() => setShowVerseForm(true)}>
+									<Plus />
+									Tambah Ayat
+								</Button>
+							</CardHeader>
+							<CardContent className="space-y-6">
 								{showVerseForm && (
-									<div className="rounded-lg bg-gray-50 p-6">
-										<h3 className="mb-4 font-medium text-gray-900 text-lg">
+									<div className="rounded-lg border bg-muted/40 p-6">
+										<h3 className="mb-4 font-medium text-foreground text-lg">
 											{editingVerse ? "Edit Ayat" : "Tambah Ayat Baru"}
 										</h3>
 
 										<div className="space-y-4">
-											<div>
-												<label
-													htmlFor={verseArabicId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													Teks Arab
-												</label>
-												<textarea
-													id={verseArabicId}
-													value={verseForm.arabic}
-													onChange={(e) =>
-														setVerseForm({
-															...verseForm,
-															arabic: e.target.value,
-														})
-													}
-													rows={3}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="النص العربي للآية"
-													dir="rtl"
-												/>
-											</div>
-
-											<div>
-												<label
-													htmlFor={verseTranslationId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													Terjemahan
-												</label>
-												<textarea
-													id={verseTranslationId}
-													value={verseForm.translation}
-													onChange={(e) =>
-														setVerseForm({
-															...verseForm,
-															translation: e.target.value,
-														})
-													}
-													rows={3}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="Terjemahan ayat dalam bahasa Indonesia"
-												/>
-											</div>
-
-											<div>
-												<label
-													htmlFor={verseReferenceId}
-													className="mb-2 block font-medium text-gray-700 text-sm"
-												>
-													Referensi
-												</label>
-												<input
-													id={verseReferenceId}
-													type="text"
-													value={verseForm.reference}
-													onChange={(e) =>
-														setVerseForm({
-															...verseForm,
-															reference: e.target.value,
-														})
-													}
-													className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-													placeholder="Contoh: Al-Baqarah 2:43"
-												/>
-											</div>
+											<TextareaField
+												id={verseArabicId}
+												label="Teks Arab"
+												value={verseForm.arabic}
+												onChange={(event) =>
+													setVerseForm({
+														...verseForm,
+														arabic: event.target.value,
+													})
+												}
+												rows={3}
+												className="arabic-text text-right"
+												placeholder="النص العربي للآية"
+												dir="rtl"
+											/>
+											<TextareaField
+												id={verseTranslationId}
+												label="Terjemahan"
+												value={verseForm.translation}
+												onChange={(event) =>
+													setVerseForm({
+														...verseForm,
+														translation: event.target.value,
+													})
+												}
+												rows={3}
+												placeholder="Terjemahan ayat dalam bahasa Indonesia"
+											/>
+											<TextInputField
+												id={verseReferenceId}
+												label="Referensi"
+												type="text"
+												value={verseForm.reference}
+												onChange={(event) =>
+													setVerseForm({
+														...verseForm,
+														reference: event.target.value,
+													})
+												}
+												placeholder="Contoh: Al-Baqarah 2:43"
+											/>
 										</div>
 
 										<div className="mt-6 flex gap-3">
-											<button
+											<Button
 												type="button"
 												onClick={
 													editingVerse ? handleUpdateVerse : handleAddVerse
 												}
-												className="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-700"
 											>
-												<Save size={16} />
+												<Save />
 												{editingVerse ? "Update Ayat" : "Simpan Ayat"}
-											</button>
-											<button
+											</Button>
+											<Button
 												type="button"
+												variant="outline"
 												onClick={handleCancelVerseForm}
-												className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
 											>
 												Batal
-											</button>
+											</Button>
 										</div>
 									</div>
 								)}
 
 								<div className="space-y-4">
 									{verseList.map((verse) => (
-										<div key={verse.id} className="rounded-lg bg-gray-50 p-6">
+										<div
+											key={verse.id}
+											className="rounded-lg border bg-muted/50 p-6"
+										>
 											<div className="mb-4">
-												<div className="arabic-text mb-3 text-right font-light text-gray-800 text-lg leading-relaxed">
+												<div className="arabic-text mb-3 text-right font-light text-foreground text-lg leading-relaxed">
 													{verse.arabic}
 												</div>
-												<div className="mb-2 text-gray-700 italic">
+												<div className="mb-2 text-muted-foreground italic">
 													"{verse.translation}"
 												</div>
-												<div className="font-medium text-emerald-600 text-sm">
-													— {verse.reference}
+												<div className="font-medium text-primary text-sm">
+													- {verse.reference}
 												</div>
 											</div>
 
 											<div className="flex justify-end gap-2">
-												<button
+												<Button
 													type="button"
+													variant="ghost"
+													size="icon"
+													aria-label={`Edit ayat ${verse.reference}`}
 													onClick={() => handleEditVerse(verse)}
-													className="text-emerald-600 transition-colors hover:text-emerald-800"
 												>
-													<Edit2 size={16} />
-												</button>
-												<button
+													<Edit2 />
+												</Button>
+												<Button
 													type="button"
+													variant="ghost"
+													size="icon"
+													aria-label={`Hapus ayat ${verse.reference}`}
 													onClick={() => handleDeleteVerse(verse.id)}
-													className="text-red-600 transition-colors hover:text-red-800"
+													className="text-destructive hover:text-destructive"
 												>
-													<Trash2 size={16} />
-												</button>
+													<Trash2 />
+												</Button>
 											</div>
 										</div>
 									))}
 
 									{verseList.length === 0 && (
-										<div className="py-8 text-center text-gray-500">
+										<div className="py-8 text-center text-muted-foreground">
 											Belum ada ayat Al-Quran. Tambahkan ayat di atas.
 										</div>
 									)}
 								</div>
-							</div>
-						)}
+							</CardContent>
+						</Card>
+					</TabsContent>
 
-						{activeTab === "prayer-settings" && (
-							<div className="space-y-6">
-								<h2 className="font-semibold text-gray-900 text-xl">
-									Pengaturan Waktu Shalat
-								</h2>
-								<p className="text-gray-600 text-sm">
+					<TabsContent value="prayer-settings">
+						<Card>
+							<CardHeader>
+								<CardTitle>Pengaturan Waktu Shalat</CardTitle>
+								<CardDescription>
 									Konfigurasi metode perhitungan waktu shalat menggunakan
 									parameter API Aladhan
-								</p>
-
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-6">
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-									<div>
-										<label
-											htmlFor={methodId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Metode Perhitungan
-										</label>
-										<select
-											id={methodId}
-											value={prayerSettingsForm.method}
-											onChange={(e) =>
-												setPrayerSettingsForm({
-													...prayerSettingsForm,
-													method: Number(e.target.value),
-												})
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										>
-											<option value={1}>
-												University of Islamic Sciences, Karachi
-											</option>
-											<option value={2}>
-												Islamic Society of North America
-											</option>
-											<option value={3}>Muslim World League</option>
-											<option value={4}>Umm Al-Qura University, Makkah</option>
-											<option value={5}>
-												Egyptian General Authority of Survey
-											</option>
-											<option value={7}>
-												Institute of Geophysics, University of Tehran
-											</option>
-											<option value={8}>Gulf Region</option>
-											<option value={9}>Kuwait</option>
-											<option value={10}>Qatar</option>
-											<option value={11}>
-												Majlis Ugama Islam Singapura, Singapore
-											</option>
-											<option value={12}>
-												Union Organization islamic de France
-											</option>
-											<option value={13}>
-												Diyanet İşleri Başkanlığı, Turkey
-											</option>
-											<option value={14}>
-												Spiritual Administration of Muslims of Russia
-											</option>
-											<option value={15}>
-												Moonsighting Committee Worldwide
-											</option>
-											<option value={16}>Dubai (unofficial)</option>
-											<option value={20}>Custom (Kementerian Agama RI)</option>
-										</select>
-									</div>
-
-									<div>
-										<label
-											htmlFor={shafaqId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Shafaq (untuk Isya)
-										</label>
-										<select
-											id={shafaqId}
-											value={prayerSettingsForm.shafaq}
-											onChange={(e) =>
-												setPrayerSettingsForm({
-													...prayerSettingsForm,
-													shafaq: e.target.value,
-												})
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										>
-											<option value="general">General</option>
-											<option value="red">Red</option>
-											<option value="white">White</option>
-										</select>
-									</div>
-
-									<div>
-										<label
-											htmlFor={schoolId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Mazhab (untuk Ashar)
-										</label>
-										<select
-											id={schoolId}
-											value={prayerSettingsForm.school}
-											onChange={(e) =>
-												setPrayerSettingsForm({
-													...prayerSettingsForm,
-													school: Number(e.target.value),
-												})
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										>
-											<option value={0}>Shafi</option>
-											<option value={1}>Hanafi</option>
-										</select>
-									</div>
-
-									<div>
-										<label
-											htmlFor={midnightModeId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Mode Tengah Malam
-										</label>
-										<select
-											id={midnightModeId}
-											value={prayerSettingsForm.midnightMode}
-											onChange={(e) =>
-												setPrayerSettingsForm({
-													...prayerSettingsForm,
-													midnightMode: Number(e.target.value),
-												})
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										>
-											<option value={0}>
-												Standard (Mid Sunset to Sunrise)
-											</option>
-											<option value={1}>Jafari (Mid Sunset to Fajr)</option>
-										</select>
-									</div>
-
-									<div>
-										<label
-											htmlFor={timezoneId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Zona Waktu
-										</label>
-										<select
-											id={timezoneId}
-											value={prayerSettingsForm.timezonestring}
-											onChange={(e) =>
-												setPrayerSettingsForm({
-													...prayerSettingsForm,
-													timezonestring: e.target.value,
-												})
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-										>
-											<option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
-											<option value="Asia/Makassar">
-												WITA (Asia/Makassar)
-											</option>
-											<option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
-										</select>
-									</div>
-
-									<div className="md:col-span-2">
-										<label
-											htmlFor={tuneId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Penyesuaian Waktu (Tune)
-										</label>
-										<input
-											id={tuneId}
-											type="text"
-											value={prayerSettingsForm.tune}
-											onChange={(e) =>
-												setPrayerSettingsForm({
-													...prayerSettingsForm,
-													tune: e.target.value,
-												})
-											}
-											className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-											placeholder="36,36,23,-2,-8,-29,-29,-31,0"
-										/>
-										<p className="mt-1 text-gray-500 text-xs">
-											Format:
-											Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Isha,Midnight,Sunset
-											(dalam menit, pisahkan dengan koma)
-										</p>
-									</div>
+									<SelectField
+										id={methodId}
+										label="Metode Perhitungan"
+										value={String(prayerSettingsForm.method)}
+										options={prayerMethodOptions}
+										onValueChange={(value) =>
+											setPrayerSettingsForm({
+												...prayerSettingsForm,
+												method: Number(value),
+											})
+										}
+									/>
+									<SelectField
+										id={shafaqId}
+										label="Shafaq (untuk Isya)"
+										value={prayerSettingsForm.shafaq}
+										options={shafaqOptions}
+										onValueChange={(value) =>
+											setPrayerSettingsForm({
+												...prayerSettingsForm,
+												shafaq: value,
+											})
+										}
+									/>
+									<SelectField
+										id={schoolId}
+										label="Mazhab (untuk Ashar)"
+										value={String(prayerSettingsForm.school)}
+										options={schoolOptions}
+										onValueChange={(value) =>
+											setPrayerSettingsForm({
+												...prayerSettingsForm,
+												school: Number(value),
+											})
+										}
+									/>
+									<SelectField
+										id={midnightModeId}
+										label="Mode Tengah Malam"
+										value={String(prayerSettingsForm.midnightMode)}
+										options={midnightModeOptions}
+										onValueChange={(value) =>
+											setPrayerSettingsForm({
+												...prayerSettingsForm,
+												midnightMode: Number(value),
+											})
+										}
+									/>
+									<SelectField
+										id={timezoneId}
+										label="Zona Waktu"
+										value={prayerSettingsForm.timezonestring}
+										options={timezoneOptions}
+										onValueChange={(value) =>
+											setPrayerSettingsForm({
+												...prayerSettingsForm,
+												timezonestring: value,
+											})
+										}
+									/>
+									<TextInputField
+										id={tuneId}
+										label="Penyesuaian Waktu (Tune)"
+										type="text"
+										value={prayerSettingsForm.tune}
+										onChange={(event) =>
+											setPrayerSettingsForm({
+												...prayerSettingsForm,
+												tune: event.target.value,
+											})
+										}
+										placeholder="36,36,23,-2,-8,-29,-29,-31,0"
+										fieldClassName="md:col-span-2"
+										description="Format: Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Isha,Midnight,Sunset (dalam menit, pisahkan dengan koma)"
+									/>
 								</div>
-
-								<button
-									type="button"
-									onClick={handleSavePrayerSettings}
-									className="flex items-center gap-2 rounded-md bg-emerald-600 px-6 py-2 text-white transition-colors hover:bg-emerald-700"
-								>
-									<Save size={16} />
+								<Button type="button" onClick={handleSavePrayerSettings}>
+									<Save />
 									Simpan Pengaturan Shalat
-								</button>
-							</div>
-						)}
+								</Button>
+							</CardContent>
+						</Card>
+					</TabsContent>
 
-						{activeTab === "iqamah" && (
-							<div className="space-y-6">
-								<h2 className="font-semibold text-gray-900 text-xl">
-									Pengaturan Waktu Iqamah
-								</h2>
-								<p className="text-gray-600 text-sm">
+					<TabsContent value="iqamah">
+						<Card>
+							<CardHeader>
+								<CardTitle>Pengaturan Waktu Iqamah</CardTitle>
+								<CardDescription>
 									Atur interval waktu dari adzan hingga iqamah untuk setiap
 									waktu shalat
-								</p>
-
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-6">
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-									<div>
-										<label
-											htmlFor={fajrIqamahId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Subuh (Fajr)
-										</label>
-										<div className="flex items-center gap-2">
-											<input
-												id={fajrIqamahId}
-												type="number"
-												min="1"
-												max="60"
-												value={iqamahIntervalsForm.fajr}
-												onChange={(e) =>
-													setIqamahIntervalsForm({
-														...iqamahIntervalsForm,
-														fajr: Number(e.target.value),
-													})
-												}
-												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-											/>
-											<span className="text-gray-500 text-sm">menit</span>
-										</div>
-									</div>
-
-									<div>
-										<label
-											htmlFor={dhuhrIqamahId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Dzuhur (Dhuhr)
-										</label>
-										<div className="flex items-center gap-2">
-											<input
-												id={dhuhrIqamahId}
-												type="number"
-												min="1"
-												max="60"
-												value={iqamahIntervalsForm.dhuhr}
-												onChange={(e) =>
-													setIqamahIntervalsForm({
-														...iqamahIntervalsForm,
-														dhuhr: Number(e.target.value),
-													})
-												}
-												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-											/>
-											<span className="text-gray-500 text-sm">menit</span>
-										</div>
-									</div>
-
-									<div>
-										<label
-											htmlFor={asrIqamahId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Ashar (Asr)
-										</label>
-										<div className="flex items-center gap-2">
-											<input
-												id={asrIqamahId}
-												type="number"
-												min="1"
-												max="60"
-												value={iqamahIntervalsForm.asr}
-												onChange={(e) =>
-													setIqamahIntervalsForm({
-														...iqamahIntervalsForm,
-														asr: Number(e.target.value),
-													})
-												}
-												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-											/>
-											<span className="text-gray-500 text-sm">menit</span>
-										</div>
-									</div>
-
-									<div>
-										<label
-											htmlFor={maghribIqamahId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Maghrib
-										</label>
-										<div className="flex items-center gap-2">
-											<input
-												id={maghribIqamahId}
-												type="number"
-												min="1"
-												max="60"
-												value={iqamahIntervalsForm.maghrib}
-												onChange={(e) =>
-													setIqamahIntervalsForm({
-														...iqamahIntervalsForm,
-														maghrib: Number(e.target.value),
-													})
-												}
-												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-											/>
-											<span className="text-gray-500 text-sm">menit</span>
-										</div>
-									</div>
-
-									<div>
-										<label
-											htmlFor={ishaIqamahId}
-											className="mb-2 block font-medium text-gray-700 text-sm"
-										>
-											Isya (Isha)
-										</label>
-										<div className="flex items-center gap-2">
-											<input
-												id={ishaIqamahId}
-												type="number"
-												min="1"
-												max="60"
-												value={iqamahIntervalsForm.isha}
-												onChange={(e) =>
-													setIqamahIntervalsForm({
-														...iqamahIntervalsForm,
-														isha: Number(e.target.value),
-													})
-												}
-												className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-											/>
-											<span className="text-gray-500 text-sm">menit</span>
-										</div>
-									</div>
+									{iqamahFields.map((field) => (
+										<Field key={field.key}>
+											<FieldLabel htmlFor={iqamahInputIds[field.key]}>
+												{field.label}
+											</FieldLabel>
+											<div className="flex items-center gap-2">
+												<Input
+													id={iqamahInputIds[field.key]}
+													type="number"
+													min="1"
+													max="60"
+													value={iqamahIntervalsForm[field.key]}
+													onChange={(event) =>
+														setIqamahIntervalsForm({
+															...iqamahIntervalsForm,
+															[field.key]: Number(event.target.value),
+														})
+													}
+												/>
+												<span className="text-muted-foreground text-sm">
+													menit
+												</span>
+											</div>
+										</Field>
+									))}
 								</div>
 
-								<div className="mt-6 rounded-lg bg-blue-50 p-4">
-									<h3 className="mb-2 font-medium text-blue-900 text-sm">
+								<div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+									<h3 className="mb-2 font-medium text-primary text-sm">
 										Informasi Penting:
 									</h3>
-									<ul className="space-y-1 text-blue-800 text-sm">
+									<ul className="space-y-1 text-primary text-sm">
 										<li>
-											• Waktu iqamah akan otomatis dimulai setelah adzan selesai
+											- Waktu iqamah akan otomatis dimulai setelah adzan selesai
 										</li>
 										<li>
-											• Halaman countdown akan menampilkan waktu mundur hingga
+											- Halaman countdown akan menampilkan waktu mundur hingga
 											iqamah
 										</li>
 										<li>
-											• Auto-redirect akan pindah ke halaman iqamah secara
+											- Auto-redirect akan pindah ke halaman iqamah secara
 											otomatis
 										</li>
-										<li>• Akses halaman iqamah di: /iqamah</li>
-										<li>• Minimum 1 menit, maksimum 60 menit per shalat</li>
+										<li>- Akses halaman iqamah di: /iqamah</li>
+										<li>- Minimum 1 menit, maksimum 60 menit per shalat</li>
 									</ul>
 								</div>
 
-								<button
-									type="button"
-									onClick={handleSaveIqamahIntervals}
-									className="flex items-center gap-2 rounded-md bg-emerald-600 px-6 py-2 text-white transition-colors hover:bg-emerald-700"
-								>
-									<Save size={16} />
+								<Button type="button" onClick={handleSaveIqamahIntervals}>
+									<Save />
 									Simpan Waktu Iqamah
-								</button>
-							</div>
-						)}
+								</Button>
+							</CardContent>
+						</Card>
+					</TabsContent>
 
-						{activeTab === "settings" && (
-							<div className="space-y-6">
-								<h2 className="font-semibold text-gray-900 text-xl">
-									Pengaturan Tampilan
-								</h2>
-								<div className="text-gray-600">
-									<p>
-										Pengaturan tambahan akan tersedia dalam pembaruan mendatang:
-									</p>
-									<ul className="mt-4 list-inside list-disc space-y-2">
-										<li>Pemilihan metode perhitungan waktu shalat</li>
-										<li>Pengaturan penyesuaian waktu</li>
-										<li>Kustomisasi tema tampilan</li>
-										<li>Notifikasi audio</li>
-										<li>Preferensi bahasa</li>
-									</ul>
-								</div>
-							</div>
-						)}
-					</div>
-				</div>
+					<TabsContent value="settings">
+						<Card>
+							<CardHeader>
+								<CardTitle>Pengaturan Tampilan</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-6 text-muted-foreground">
+								<p>
+									Pengaturan tambahan akan tersedia dalam pembaruan mendatang:
+								</p>
+								<ul className="mt-4 list-inside list-disc space-y-2">
+									<li>Pemilihan metode perhitungan waktu shalat</li>
+									<li>Pengaturan penyesuaian waktu</li>
+									<li>Kustomisasi tema tampilan</li>
+									<li>Notifikasi audio</li>
+									<li>Preferensi bahasa</li>
+								</ul>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={handleResetDefaults}
+								>
+									Pulihkan Pengaturan Default
+								</Button>
+							</CardContent>
+						</Card>
+					</TabsContent>
+				</Tabs>
 			</div>
 		</div>
 	)

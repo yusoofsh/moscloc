@@ -79,8 +79,8 @@ export const selectors = {
  * Wait for loading states to complete
  */
 export async function waitForLoadingComplete(page: Page) {
-	// Wait for any loading spinners to disappear
-	await page.waitForLoadState("networkidle")
+	await page.waitForLoadState("domcontentloaded")
+	await expect(page.locator(selectors.prayerTimes)).toBeVisible()
 
 	// Wait for potential loading states to complete
 	const loadingElements = page.locator(
