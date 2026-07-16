@@ -1,63 +1,51 @@
-# AGENTS.md
+# Agent instructions
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+## Package manager
+
+- Use NubJS 0.2.x with Node.js 26.3.1
+- Install dependencies with `nub install`
+- Keep `lock.yaml` in sync with `package.json`
 
 ## Commands
 
-```bash
-bun dev                # Start dev server (localhost:3001)
-bun build              # Production build → dist/
-bun serve              # Preview production build
-bun check-types        # TypeScript type checking
-bun test               # Run Playwright tests
-bun test:headed        # Tests with visible browser
-bun test:ui            # Interactive test debugger
-bun desktop:dev        # Tauri desktop dev
-bun desktop:build      # Tauri desktop build
-```
+| Task                              | Command                 |
+| --------------------------------- | ----------------------- |
+| Start Vite on port 5173           | `nub run dev`           |
+| Build the web app                 | `nub run build`         |
+| Preview the web build             | `nub run serve`         |
+| Check formatting, lint, and types | `nub run check`         |
+| Apply formatting and lint fixes   | `nub run check:fix`     |
+| Run unit tests                    | `nub run test:unit`     |
+| Run browser component tests       | `nub run test:browser`  |
+| Run Playwright end-to-end tests   | `nub run test:e2e`      |
+| Run the full verification gate    | `nub run test`          |
+| Start the Tauri app               | `nub run desktop:dev`   |
+| Build the Tauri app               | `nub run desktop:build` |
 
 ## Architecture
 
-**Mosque management app** - React 19 + TanStack Router + Tauri for prayer times, events, announcements, and Iqamah countdown.
+- React 19 and TanStack Router power the web interface
+- `src/routeTree.gen.ts` is generated; never edit it directly
+- `src/contexts/PrayerContext.tsx` owns application state and `localStorage` persistence
+- `src/services/prayerService.ts` integrates with the Aladhan API
+- `tauri/` wraps the same frontend for desktop use
+- Admin data is local to one browser profile or Tauri WebView; there is no remote admin backend or sync
 
-### Stack
+## Routes
 
-- **Routing**: TanStack Router (file-based) - routes auto-generated to `src/routeTree.gen.ts` (never edit)
-- **State**: React Context (`PrayerContext`) + localStorage persistence
-- **Styling**: Tailwind CSS v4
-- **Forms**: TanStack Form + Zod validation
-- **API**: Aladhan.com for prayer times and Hijri dates
-- **Desktop**: Tauri v2
-- **Linting**: Biome (tabs, double quotes, no semicolons)
+- `/`: mosque display
+- `/admin`: local settings and content editor
+- `/iqamah`: Iqamah countdown, with redirect outside the active window
 
-### Routes
+## Tests
 
-- `/` → `PrayerDisplay` (main display)
-- `/admin` → `AdminPanel` (settings)
-- `/iqamah` → `IqamahCountdown` (countdown timer)
+- Unit tests run in jsdom from services, hooks, contexts, and library modules
+- Component tests run in headless Chromium from `src/components/**/*.test.tsx`
+- Playwright tests in `tests/` run against local Vite on port 5173 in WebKit
+- `BASE_URL` does not override the current Playwright configuration
 
-### Key Files
+## Conventions
 
-- `src/contexts/PrayerContext.tsx` - Central state: mosque info, prayer times, events, verses, iqamah intervals
-- `src/services/prayerService.ts` - Aladhan API integration
-- `src/routes/__root.tsx` - Root layout with `PrayerProvider`
-- `src/components/AdminPanel.tsx` - Settings UI (largest component)
-
-### Data Flow
-
-1. `PrayerContext` fetches prayer times from Aladhan API on mount + daily at midnight
-2. Current/next prayer updated every minute
-3. All settings persisted to localStorage
-4. Components consume via `usePrayerContext()` hook
-
-### Defaults
-
-- Location: Malang, Indonesia (-8.0679373, 112.5988417)
-- Timezone: Asia/Jakarta
-- Prayer method: 20 (Custom)
-
-## Testing
-
-Playwright tests in `/tests/`. Key test IDs: `prayer-times`, `current-time`, `quran-verse`, `islamic-calendar`, `admin-panel`, `iqamah-countdown`.
-
-Run single test: `bun test tests/home.spec.ts`
+- Use Oxfmt and Oxlint through the package scripts
+- Follow tabs, double quotes, and no semicolons
+- Preserve local-first behavior unless the task explicitly changes the product architecture

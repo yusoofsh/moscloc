@@ -1,230 +1,104 @@
 # Moscloc
 
-A modern Islamic mosque management application built with React, TypeScript, and Tauri. Features prayer times, community events, Quran verses, announcements, and an Iqamah countdown timer.
+Moscloc is a local-first mosque information display for prayer times, announcements, events, Quran verses, and Iqamah countdowns. It runs as a Vite web app or inside a Tauri desktop window.
 
-## Features
+## Current capabilities
 
-### 🕌 Core Features
+- Fetch prayer times and Hijri dates from the Aladhan API
+- Display the current time, current prayer, next prayer, announcements, events, and Quran verses
+- Configure mosque details, prayer calculation settings, content, and Iqamah intervals at `/admin`
+- Open `/iqamah` during an active Adhan-to-Iqamah window and return to the main display outside that window
+- Persist settings in the current browser profile or Tauri WebView with `localStorage`
+- Render an Indonesian interface with Arabic Quran text
 
-- **Prayer Times Display**: Accurate prayer times with customizable calculation methods
-- **Islamic Calendar**: Hijri date display with current Islamic date
-- **Quran Verses**: Daily rotating verses with Arabic text and translations
-- **Community Events**: Event management system for mosque activities
-- **Announcements**: Real-time announcements system
-- **Mosque Information**: Customizable mosque details and contact information
+## Local-first scope
 
-### ⏰ Iqamah Countdown System
+Moscloc has no application backend, account system, or remote administration service. Changes from `/admin` affect only the browser profile or Tauri app data on that device. They do not sync to other browsers, computers, or displays.
 
-- **Automatic Countdown**: Shows countdown timer from Adhan to Iqamah
-- **Configurable Intervals**: Set different waiting times for each prayer
-- **Visual Display**: Beautiful full-screen countdown with mosque branding
-- **Auto-detect**: Automatically detects when it's time for Iqamah
-- **Multi-language**: Support for Indonesian and Arabic prayer names
+The Tauri app wraps the same frontend and uses the configuration under `tauri/`. Its data remains local to the desktop app's WebView storage.
 
-### 🎨 Modern UI/UX
+Moscloc does not currently include an installable Progressive Web App (PWA), a theme selector, or locale switching. Those capabilities require separate implementation work.
 
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
-- **Islamic Design**: Beautiful Islamic-themed UI with geometric patterns
-- **Dark/Light Themes**: Support for different visual themes
-- **PWA Support**: Can be installed as a Progressive Web App
-- **Tauri Desktop**: Native desktop application support
+## Requirements
 
-## Installation & Setup
+- Node.js 26.3.1
+- [NubJS](https://github.com/nubjs/nub) 0.2.x
+- Rust toolchain and platform prerequisites for Tauri development
 
-### Prerequisites
+## Run the web app
 
-- Node.js 26.3.1 via mise
-- Rust (for Tauri desktop app)
-- NubJS package manager
-
-### Development Setup
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <repository-url>
-   cd moscloc
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   nub install
-   ```
-
-3. **Start development server**
-
-   ```bash
-   nub run dev
-   ```
-
-4. **Access the application**
-   - Web: `http://localhost:5173`
-   - Admin Panel: `http://localhost:5173/admin`
-   - Iqamah Page: `http://localhost:5173/iqamah`
-
-### Building for Production
-
-**Web Application:**
+Install dependencies, then start Vite:
 
 ```bash
-nub run build
-nub run serve
+nub install
+nub run dev
 ```
 
-**Desktop Application:**
+Open these local routes:
+
+| Page             | URL                            |
+| ---------------- | ------------------------------ |
+| Mosque display   | `http://localhost:5173/`       |
+| Local admin      | `http://localhost:5173/admin`  |
+| Iqamah countdown | `http://localhost:5173/iqamah` |
+
+## Run the desktop app
+
+Start the Tauri development app:
+
+```bash
+nub run desktop:dev
+```
+
+Build platform installers with:
 
 ```bash
 nub run desktop:build
 ```
 
-## Usage Guide
+## Build and verify
 
-### Admin Panel Configuration
+| Task                                | Command                |
+| ----------------------------------- | ---------------------- |
+| Build the web app                   | `nub run build`        |
+| Preview the web build               | `nub run serve`        |
+| Check Oxfmt, Oxlint, and TypeScript | `nub run check`        |
+| Apply Oxfmt and Oxlint fixes        | `nub run check:fix`    |
+| Run unit tests                      | `nub run test:unit`    |
+| Run browser component tests         | `nub run test:browser` |
+| Run Playwright end-to-end tests     | `nub run test:e2e`     |
+| Run every verification step         | `nub run test`         |
 
-Access the admin panel at `/admin` to configure:
+Install the Chromium and WebKit binaries before the browser test suites:
 
-1. **Mosque Information**
-   - Mosque name and address
-   - Contact information
-   - Geographic coordinates for prayer times
-
-2. **Prayer Settings**
-   - Calculation method (supports 15+ international methods)
-   - Juristic school (Shafi/Hanafi)
-   - Time adjustments and corrections
-   - Timezone configuration
-
-3. **Iqamah Intervals** ⭐ **NEW**
-   - Set waiting time between Adhan and Iqamah for each prayer
-   - Configure different intervals:
-     - Subuh/Fajr: 15 minutes (default)
-     - Dzuhur/Dhuhr: 10 minutes (default)
-     - Ashar/Asr: 10 minutes (default)
-     - Maghrib: 5 minutes (default)
-     - Isya/Isha: 10 minutes (default)
-
-4. **Content Management**
-   - Announcements
-   - Community events
-   - Quran verses rotation
-
-### Iqamah Countdown Feature
-
-#### How it Works
-
-1. **Automatic Detection**: The system automatically detects when it's time between Adhan and Iqamah
-2. **Visual Countdown**: Shows a beautiful full-screen countdown timer
-3. **Mosque Branding**: Displays mosque name, address, and prayer information
-4. **Progress Indicator**: Visual progress bar showing time elapsed
-
-#### Accessing Iqamah Page
-
-- **Direct URL**: Navigate to `/iqamah`
-- **Auto-redirect**: Can be configured to auto-redirect from main display
-- **Manual Control**: Admin can manually open when needed
-
-#### Display Information
-
-- Current prayer name (e.g., "Menuju Iqamah Dzuhur")
-- Countdown timer in MM:SS format
-- Adhan time and Iqamah time
-- Mosque information
-- Progress bar visualization
-
-#### States
-
-- **No Active Iqamah**: Shows message when not in Iqamah period
-- **Countdown Active**: Shows countdown timer with remaining time
-- **Iqamah Time**: Shows "IQAMAH" message when time is reached
-
-### Prayer Times API
-
-The application uses the Aladhan API for accurate prayer times:
-
-- Supports 15+ calculation methods worldwide
-- Automatic timezone detection
-- Custom tune parameters for local adjustments
-- Supports both Shafi and Hanafi juristic schools
-
-## Technical Architecture
-
-### Tech Stack
-
-- **Frontend**: React 19, TypeScript, Tailwind CSS
-- **Routing**: TanStack Router with file-based routing
-- **State Management**: React Context API
-- **Desktop**: Tauri (Rust-based)
-- **Build Tool**: Vite
-- **PWA**: Vite PWA plugin
-- **Linting/formatting**: Oxlint + Oxfmt
-
-### Project Structure
-
-```
-src/
-├── components/          # React components
-│   ├── IqamahCountdown.tsx    # Iqamah countdown display
-│   ├── IqamahRedirect.tsx     # Auto-redirect component
-│   ├── PrayerTimes.tsx        # Prayer times display
-│   ├── AdminPanel.tsx         # Admin configuration
-│   └── ...
-├── contexts/           # React contexts
-│   └── PrayerContext.tsx      # Prayer & Iqamah state
-├── routes/            # File-based routing
-│   ├── index.tsx             # Main display
-│   ├── iqamah.tsx           # Iqamah countdown page
-│   └── admin/               # Admin routes
-├── services/          # API services
-└── hooks/            # Custom React hooks
+```bash
+nub exec playwright install chromium webkit
 ```
 
-## Configuration Examples
+See [`tests/README.md`](tests/README.md) for the test matrix and Playwright behavior.
 
-### Sample Iqamah Configuration
+## Architecture
 
-```json
-{
-	"fajr": 15, // 15 minutes after Fajr Adhan
-	"dhuhr": 10, // 10 minutes after Dhuhr Adhan
-	"asr": 10, // 10 minutes after Asr Adhan
-	"maghrib": 5, // 5 minutes after Maghrib Adhan
-	"isha": 10 // 10 minutes after Isha Adhan
-}
-```
+| Path                                 | Responsibility                                         |
+| ------------------------------------ | ------------------------------------------------------ |
+| `src/contexts/PrayerContext.tsx`     | State, Aladhan refresh schedule, and local persistence |
+| `src/services/prayerService.ts`      | Aladhan prayer-time API integration                    |
+| `src/components/PrayerDisplay.tsx`   | Main mosque display                                    |
+| `src/components/AdminPanel.tsx`      | Local settings and content editor                      |
+| `src/components/IqamahCountdown.tsx` | Iqamah countdown display                               |
+| `src/routes/`                        | TanStack Router file-based routes                      |
+| `tauri/`                             | Tauri desktop wrapper                                  |
 
-### Prayer Settings Example
+TanStack Router generates `src/routeTree.gen.ts`; do not edit that file directly.
 
-```json
-{
-	"method": 20, // Custom method
-	"school": 0, // Shafi school
-	"tune": "10,10,-1,1,2,3,3,2,0", // Time adjustments
-	"timezonestring": "Asia/Jakarta",
-	"shafaq": "general"
-}
-```
+## Default configuration
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+- Mosque: Masjid Darul Arqom, Malang, Indonesia
+- Coordinates: `-8.0679373, 112.5988417`
+- Time zone: `Asia/Jakarta`
+- Prayer calculation method: Aladhan custom method `20`
+- Juristic school: Shafi
 
 ## License
 
-This project is licensed under the MIT License.
-
-## Support
-
-For support and questions:
-
-- Open an issue on GitHub
-- Check the documentation
-- Contact the development team
-
----
-
-**Made with ❤️ for the Muslim community**
+Moscloc is available under the [MIT License](LICENSE).

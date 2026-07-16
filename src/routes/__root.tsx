@@ -13,17 +13,19 @@ export const Route = createRootRouteWithContext()({
 	head: () => ({
 		meta: [
 			{
-				title: "My App",
+				title: "Moscloc | Layar Informasi Masjid",
 			},
 			{
 				name: "description",
-				content: "My App is a web application",
+				content:
+					"Layar informasi masjid untuk jadwal salat, pengumuman, acara, dan hitung mundur iqamah.",
 			},
 		],
 		links: [
 			{
 				rel: "icon",
-				href: "/favicon.ico",
+				type: "image/png",
+				href: "/logo.png",
 			},
 		],
 	}),

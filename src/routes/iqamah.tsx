@@ -6,11 +6,12 @@ export const Route = createFileRoute("/iqamah")({
 	head: () => ({
 		meta: [
 			{
-				title: "Iqamah Countdown - Moscloc",
+				title: "Hitung Mundur Iqamah | Moscloc",
 			},
 			{
 				name: "description",
-				content: "Countdown timer for Iqamah prayer time",
+				content:
+					"Hitung mundur dari waktu azan menuju iqamah untuk salat yang sedang aktif.",
 			},
 		],
 	}),
