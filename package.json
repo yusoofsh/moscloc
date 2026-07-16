@@ -76,7 +76,7 @@
 			"oxlint --fix --no-error-on-unmatched-pattern",
 			"oxfmt --write --no-error-on-unmatched-pattern"
 		],
-		"*.{json,jsonc,css,scss,md,mdx,yml,yaml,html}": [
+		"!(*lock).{json,jsonc,css,scss,md,mdx,yml,yaml,html}": [
 			"oxfmt --write --no-error-on-unmatched-pattern"
 		]
 	},
