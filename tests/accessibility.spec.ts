@@ -4,11 +4,9 @@ test.describe("Accessibility", () => {
 	test("should have proper heading structure", async ({ page }) => {
 		await page.goto("/", { waitUntil: "domcontentloaded" })
 
-		// Check if there are proper headings
-		const headings = page.locator("h1, h2, h3, h4, h5, h6")
-		const headingCount = await headings.count()
-
-		expect(headingCount).toBeGreaterThan(0)
+		await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+			"Masjid Darul Arqom",
+		)
 	})
 
 	test("should have alt text for images", async ({ page }) => {
@@ -25,15 +23,18 @@ test.describe("Accessibility", () => {
 		}
 	})
 
-	test("should have proper color contrast", async ({ page }) => {
+	test("should render primary text without hiding or transparency", async ({
+		page,
+	}) => {
 		await page.goto("/", { waitUntil: "domcontentloaded" })
 
-		// Basic check for text visibility
-		const textElements = page.locator('body *:has-text("a")')
-		const count = await textElements.count()
-
-		// Ensure text is visible (this is a basic check)
-		expect(count).toBeGreaterThan(0)
+		const heading = page.getByRole("heading", { level: 1 })
+		await expect(heading).toBeVisible()
+		const style = await heading.evaluate((element) => {
+			const computed = getComputedStyle(element)
+			return { opacity: computed.opacity, visibility: computed.visibility }
+		})
+		expect(style).toEqual({ opacity: "1", visibility: "visible" })
 	})
 
 	test("should be keyboard navigable", async ({ page }) => {

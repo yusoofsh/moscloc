@@ -35,18 +35,24 @@ test.describe("Navigation", () => {
 	test("should handle 404 pages gracefully", async ({ page }) => {
 		await page.goto("/non-existent-page", { waitUntil: "domcontentloaded" })
 
-		// Should either redirect to home, show prayer times (if using catch-all route), or show error
-		const hasPrayerTimes = await page
-			.locator('[data-testid="prayer-times"]')
-			.isVisible()
-			.catch(() => false)
-		const has404Content = await page
-			.locator("text=404")
-			.isVisible()
-			.catch(() => false)
-		const hasBody = await page.locator("body").isVisible()
+		await expect(page).toHaveURL(/\/non-existent-page$/)
+		await expect(page.getByText("Not Found", { exact: true })).toBeVisible()
+		await expect(page.locator('[data-testid="prayer-times"]')).toHaveCount(0)
+	})
 
-		// App should handle 404 in some way
-		expect(hasPrayerTimes || has404Content || hasBody).toBeTruthy()
+	test("should load a split route chunk on direct admin navigation", async ({
+		page,
+	}) => {
+		await page.goto("/admin", { waitUntil: "networkidle" })
+
+		await expect(page.locator('[data-testid="admin-panel"]')).toBeVisible()
+		const resources = await page.evaluate(() =>
+			performance.getEntriesByType("resource").map((entry) => entry.name),
+		)
+		expect(resources).toEqual(
+			expect.arrayContaining([
+				expect.stringMatching(/\/assets\/admin-[^/]+\.js$/),
+			]),
+		)
 	})
 })

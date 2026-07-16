@@ -1,66 +1,101 @@
-import { expect, test } from "@playwright/test"
+import { expect, type Page, test } from "@playwright/test"
+
+const apiPrayerTimes = ["03:11", "05:22", "11:33", "14:44", "17:55", "19:06"]
+const defaultPrayerTimes = [
+	"04:26",
+	"05:50",
+	"12:03",
+	"15:03",
+	"17:58",
+	"18:59",
+]
+
+function prayerTimes(page: Page) {
+	return page.locator(
+		'[data-testid="prayer-times"] > .grid > div > .font-mono.text-2xl',
+	)
+}
+
+function aladhanResponse() {
+	return {
+		data: {
+			timings: {
+				Fajr: apiPrayerTimes[0],
+				Sunrise: apiPrayerTimes[1],
+				Dhuhr: apiPrayerTimes[2],
+				Asr: apiPrayerTimes[3],
+				Maghrib: apiPrayerTimes[4],
+				Isha: apiPrayerTimes[5],
+			},
+		},
+	}
+}
 
 test.describe("API and Service Tests", () => {
-	test("should handle network errors gracefully", async ({ page }) => {
-		// Block only API requests, not page resources
-		await page.route("**/api.aladhan.com/**", (route) => {
-			void route.abort()
-		})
-
-		await page.goto("/", { waitUntil: "domcontentloaded" })
-
-		// App should still load even if API calls fail
-		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
-	})
-
-	test("should load with cached data when offline", async ({ page }) => {
-		// First, load the page normally to potentially cache data
-		await page.goto("/", { waitUntil: "domcontentloaded" })
-		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
-
-		// Get initial prayer times content
-		const initialContent = await page
-			.locator('[data-testid="prayer-times"]')
-			.textContent()
-		expect(initialContent).toBeTruthy()
-
-		// Simply reload to test state persistence (skip offline simulation due to WebKit issues)
-		await page.reload()
-		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
-	})
-
-	test("should handle slow network conditions", async ({ page }) => {
-		// Simulate slow network for API only
+	test("should render deterministic fallback times when the API fails", async ({
+		page,
+	}) => {
+		let requestCount = 0
 		await page.route("**/api.aladhan.com/**", async (route) => {
-			await new Promise((resolve) => setTimeout(resolve, 1000)) // Add 1s delay
-			await route.continue()
+			requestCount += 1
+			await route.abort("failed")
 		})
 
-		const startTime = Date.now()
 		await page.goto("/", { waitUntil: "domcontentloaded" })
-		const loadTime = Date.now() - startTime
 
-		// Should eventually load despite slow network
-		await expect(page.locator("body")).toBeVisible()
-
-		// Load time should be reasonable even with simulated delay
-		expect(loadTime).toBeLessThan(30000) // 30 seconds max
+		await expect(prayerTimes(page)).toHaveText(defaultPrayerTimes)
+		expect(requestCount).toBeGreaterThan(0)
 	})
 
-	test("should preserve state during browser refresh", async ({ page }) => {
+	test("should request configured coordinates and render the API response", async ({
+		page,
+	}) => {
+		let requestedUrl: URL | undefined
+		await page.route("**/api.aladhan.com/**", async (route) => {
+			requestedUrl = new URL(route.request().url())
+			await route.fulfill({ json: aladhanResponse() })
+		})
+
 		await page.goto("/", { waitUntil: "domcontentloaded" })
-		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
 
-		// Refresh page
-		await page.reload()
+		await expect(prayerTimes(page)).toHaveText(apiPrayerTimes)
+		expect(requestedUrl?.searchParams.get("latitude")).toBe("-8.0679373")
+		expect(requestedUrl?.searchParams.get("longitude")).toBe("112.5988417")
+		expect(requestedUrl?.searchParams.get("timezonestring")).toBe(
+			"Asia/Jakarta",
+		)
+	})
 
-		// Check if content is restored
-		await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
-		const refreshedPrayerTimes = await page
-			.locator('[data-testid="prayer-times"]')
-			.textContent()
+	test("should keep the display usable while a slow API response is pending", async ({
+		page,
+	}) => {
+		await page.route("**/api.aladhan.com/**", async (route) => {
+			await new Promise((resolve) => setTimeout(resolve, 500))
+			await route.fulfill({ json: aladhanResponse() })
+		})
 
-		// Prayer times should be consistent
-		expect(refreshedPrayerTimes).toBeTruthy()
+		await page.goto("/", { waitUntil: "domcontentloaded" })
+		await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+			"Masjid Darul Arqom",
+		)
+		await expect(prayerTimes(page)).toHaveText(apiPrayerTimes)
+	})
+
+	test("should refetch prayer times after a browser refresh", async ({
+		page,
+	}) => {
+		let requestCount = 0
+		await page.route("**/api.aladhan.com/**", async (route) => {
+			requestCount += 1
+			await route.fulfill({ json: aladhanResponse() })
+		})
+
+		await page.goto("/", { waitUntil: "domcontentloaded" })
+		await expect(prayerTimes(page)).toHaveText(apiPrayerTimes)
+		const requestsBeforeReload = requestCount
+		await page.reload({ waitUntil: "domcontentloaded" })
+
+		await expect(prayerTimes(page)).toHaveText(apiPrayerTimes)
+		expect(requestCount).toBeGreaterThan(requestsBeforeReload)
 	})
 })

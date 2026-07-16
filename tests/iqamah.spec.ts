@@ -17,19 +17,16 @@ test.describe("Iqamah Page", () => {
 	test("should load iqamah page", async ({ page }) => {
 		await page.goto("/iqamah", { waitUntil: "domcontentloaded" })
 
-		// Check if the iqamah countdown is visible OR if redirected to home
-		// (depends on whether we're in a prayer window)
-		const isCountdownVisible = await page
-			.locator('[data-testid="iqamah-countdown"]')
-			.isVisible()
-			.catch(() => false)
-		const isRedirectedToHome = await page
-			.locator('[data-testid="prayer-times"]')
-			.isVisible()
-			.catch(() => false)
-
-		// Should either show countdown or redirect to home if not prayer time
-		expect(isCountdownVisible || isRedirectedToHome).toBeTruthy()
+		const destination = await waitForIqamahOrHome(page)
+		if (destination === "countdown") {
+			await expect(page).toHaveURL(/\/iqamah$/)
+			await expect(
+				page.locator('[data-testid="iqamah-countdown"]'),
+			).toBeVisible()
+		} else {
+			await expect(page).toHaveURL(/\/$/)
+			await expect(page.locator('[data-testid="prayer-times"]')).toBeVisible()
+		}
 	})
 
 	test("should display countdown or redirect when visiting iqamah page", async ({

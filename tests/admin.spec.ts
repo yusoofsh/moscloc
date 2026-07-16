@@ -8,28 +8,18 @@ test.describe("Admin Page", () => {
 		await expect(page.locator('[data-testid="admin-panel"]')).toBeVisible()
 	})
 
-	test("should have password protection or authentication", async ({
+	test("should expose the mosque settings through labeled controls", async ({
 		page,
 	}) => {
 		await page.goto("/admin", { waitUntil: "domcontentloaded" })
 
-		// This test assumes there's some form of authentication
-		// You might need to adjust this based on your actual admin implementation
-		const isProtected = await page
-			.locator('input[type="password"]')
-			.isVisible()
-			.catch(() => false)
-		const hasAuthForm = await page
-			.locator("form")
-			.isVisible()
-			.catch(() => false)
-
-		// Either there should be password protection or the admin panel should be visible
-		expect(
-			isProtected ||
-				hasAuthForm ||
-				(await page.locator('[data-testid="admin-panel"]').isVisible()),
-		).toBeTruthy()
+		await expect(page.getByLabel("Nama Masjid")).toHaveValue(
+			"Masjid Darul Arqom",
+		)
+		await expect(page.getByLabel("Alamat")).toHaveValue(/Jalan Kramatan/)
+		await expect(
+			page.getByRole("button", { name: "Simpan Perubahan" }),
+		).toBeEnabled()
 	})
 
 	test("should save mosque info and reflect it on the home display", async ({

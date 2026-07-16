@@ -37,16 +37,31 @@ test.describe("Home Page", () => {
 	test("should be responsive", async ({ page }) => {
 		await page.goto("/", { waitUntil: "domcontentloaded" })
 
-		// Test mobile viewport
 		await page.setViewportSize({ width: 375, height: 667 })
-		await expect(page.locator("body")).toBeVisible()
+		const prayerGrid = page.locator('[data-testid="prayer-times"] > .grid')
+		await expect
+			.poll(() =>
+				prayerGrid.evaluate(
+					(element) =>
+						getComputedStyle(element).gridTemplateColumns.split(" ").length,
+				),
+			)
+			.toBe(2)
+		expect(
+			await page.evaluate(() => document.documentElement.scrollWidth),
+		).toBeLessThanOrEqual(375)
 
-		// Test tablet viewport
-		await page.setViewportSize({ width: 768, height: 1024 })
-		await expect(page.locator("body")).toBeVisible()
-
-		// Test desktop viewport
 		await page.setViewportSize({ width: 1920, height: 1080 })
-		await expect(page.locator("body")).toBeVisible()
+		await expect
+			.poll(() =>
+				prayerGrid.evaluate(
+					(element) =>
+						getComputedStyle(element).gridTemplateColumns.split(" ").length,
+				),
+			)
+			.toBe(6)
+		expect(
+			await page.evaluate(() => document.documentElement.scrollWidth),
+		).toBeLessThanOrEqual(1920)
 	})
 })

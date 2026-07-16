@@ -64,7 +64,8 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: "nub run dev",
+		command:
+			"nub run build && nub exec vite preview --host 127.0.0.1 --port 5173",
 		url: "http://localhost:5173",
 		reuseExistingServer: !process.env.CI,
 		gracefulShutdown: { signal: "SIGINT", timeout: 500 },

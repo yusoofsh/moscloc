@@ -7,9 +7,13 @@ import { defineConfig } from "vite"
 export default defineConfig({
 	build: { outDir: "dist" },
 	plugins: [
+		tanstackRouter({
+			autoCodeSplitting: true,
+			quoteStyle: "double",
+			semicolons: true,
+		}),
 		react(),
 		tailwindcss(),
-		tanstackRouter({ quoteStyle: "double", semicolons: true }),
 	],
 	resolve: {
 		alias: {
