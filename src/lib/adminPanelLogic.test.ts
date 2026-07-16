@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest"
 import type { IqamahIntervals, MosqueInfo } from "~/contexts/PrayerContext"
 import {
+	ADMIN_CONTENT_LIMITS,
 	normalizeAnnouncementInput,
+	validateEvent,
 	validateIqamahIntervals,
 	validateMosqueInfo,
+	validateVerse,
 } from "./adminPanelLogic"
 
 const mosqueInfo: MosqueInfo = {
@@ -31,6 +34,14 @@ describe("adminPanelLogic", () => {
 
 	it("rejects blank announcement input", () => {
 		expect(normalizeAnnouncementInput("   ")).toBeNull()
+	})
+
+	it("rejects announcements that exceed the operator content limit", () => {
+		expect(
+			normalizeAnnouncementInput(
+				"a".repeat(ADMIN_CONTENT_LIMITS.announcement + 1),
+			),
+		).toBeNull()
 	})
 
 	it("accepts mosque info with finite coordinates", () => {
@@ -72,6 +83,48 @@ describe("adminPanelLogic", () => {
 				"Dzuhur harus berupa menit bulat antara 1 dan 60.",
 				"Isya harus berupa menit bulat antara 1 dan 60.",
 			],
+		})
+	})
+
+	it("accepts a bounded event with an HTTPS image URL", () => {
+		expect(
+			validateEvent({
+				title: "Kajian Jumat",
+				date: "Setiap Jumat",
+				time: "Ba'da Isya",
+				location: "Ruang Utama",
+				image: "https://example.com/kajian.jpg",
+				description: "Kajian rutin pekanan.",
+			}),
+		).toMatchObject({ ok: true })
+	})
+
+	it("rejects non-HTTPS event images and reports the image field", () => {
+		expect(
+			validateEvent({
+				title: "Kajian Jumat",
+				date: "Setiap Jumat",
+				time: "Ba'da Isya",
+				location: "Ruang Utama",
+				image: "http://example.com/kajian.jpg",
+				description: "",
+			}),
+		).toEqual({
+			ok: false,
+			errors: { image: "URL gambar harus menggunakan HTTPS." },
+		})
+	})
+
+	it("rejects verse fields that exceed their content limits", () => {
+		const result = validateVerse({
+			arabic: "ا".repeat(ADMIN_CONTENT_LIMITS.verseArabic + 1),
+			translation: "Terjemahan",
+			reference: "Al-Baqarah 2:43",
+		})
+
+		expect(result).toEqual({
+			ok: false,
+			errors: { arabic: "Teks Arab terlalu panjang." },
 		})
 	})
 })
