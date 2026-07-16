@@ -41,4 +41,14 @@ describe("PrayerDisplay", () => {
 			)
 			.toBeVisible()
 	})
+
+	it("uses a local resilient background instead of a remote image", async () => {
+		await renderHomeRoute()
+
+		const background = page.getByTestId("display-background")
+		await expect.element(background).toBeVisible()
+		expect(
+			(await background.element()).getAttribute("style") ?? "",
+		).not.toContain("http")
+	})
 })

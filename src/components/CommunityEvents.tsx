@@ -1,108 +1,133 @@
-import { Calendar, Clock, MapPin } from "lucide-react"
+import {
+	Calendar,
+	ChevronLeft,
+	ChevronRight,
+	Clock,
+	MapPin,
+	Pause,
+	Play,
+} from "lucide-react"
 import type React from "react"
-import { useEffect, useState } from "react"
 import { usePrayerContext } from "../contexts/PrayerContext"
+import { useRotatingContent } from "../hooks/useRotatingContent"
 
 const CommunityEventsCard: React.FC = () => {
 	const { events } = usePrayerContext()
-	const [currentIndex, setCurrentIndex] = useState(0)
+	const { currentIndex, isPaused, next, previous, togglePaused } =
+		useRotatingContent({ itemCount: events.length, intervalMs: 12_000 })
+	const event = events[currentIndex]
 
-	useEffect(() => {
-		if (events.length === 0) return
-
-		const interval = setInterval(() => {
-			setCurrentIndex((prevIndex) =>
-				prevIndex === events.length - 1 ? 0 : prevIndex + 1,
-			)
-		}, 6000)
-
-		return () => clearInterval(interval)
-	}, [events.length])
-
-	// If no events, show a placeholder
-	if (events.length === 0) {
+	if (!event) {
 		return (
-			<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-4 text-white backdrop-blur-md lg:p-6">
-				<div className="flex h-[192px] items-center justify-center">
-					<div className="text-center">
-						<h4 className="font-bold text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
-							Belum Ada Acara
-						</h4>
-						<p className="font-bold text-base text-white/80 leading-relaxed lg:text-lg xl:text-xl 2xl:text-2xl">
+			<section
+				aria-label="Acara komunitas"
+				className="rounded-3xl border border-white/20 bg-white/15 p-6 text-white backdrop-blur-md"
+			>
+				<div className="flex min-h-48 items-center justify-center text-center">
+					<div>
+						<h2 className="font-bold text-xl lg:text-2xl">Belum Ada Acara</h2>
+						<p className="mt-2 text-base text-white/80 leading-relaxed lg:text-lg">
 							Tambahkan acara komunitas melalui panel admin
 						</p>
 					</div>
 				</div>
-			</div>
+			</section>
 		)
 	}
 
 	return (
-		<div className="h-full overflow-hidden rounded-3xl border border-white/20 bg-white/15 p-4 text-white backdrop-blur-md lg:p-6">
-			{/* Event Content */}
-			<div className="relative h-[192px] overflow-hidden">
-				<div
-					className="flex h-full transition-transform duration-500 ease-in-out"
-					style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-				>
-					{events.map((event) => (
-						<div key={event.id} className="flex h-full w-full flex-shrink-0">
-							{/* Event Image */}
-							<div className="relative w-1/3">
-								<img
-									src={event.image}
-									alt={event.title}
-									className="h-full w-full rounded-2xl object-cover"
-								/>
-								<div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent to-blue-900/50" />
-							</div>
-
-							{/* Event Details */}
-							<div className="flex w-2/3 flex-col justify-center pl-4">
-								<h4 className="mb-6 font-bold text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
-									{event.title}
-								</h4>
-
-								<div className="mb-6 space-y-3">
-									<div className="flex items-center gap-3 font-bold text-base text-white lg:text-lg xl:text-xl 2xl:text-2xl">
-										<Calendar size={22} />
-										<span>{event.date}</span>
-									</div>
-									<div className="flex items-center gap-3 font-bold text-base text-white lg:text-lg xl:text-xl 2xl:text-2xl">
-										<Clock size={22} />
-										<span>{event.time}</span>
-									</div>
-									<div className="flex items-center gap-3 font-bold text-base text-white lg:text-lg xl:text-xl 2xl:text-2xl">
-										<MapPin size={22} />
-										<span>{event.location}</span>
-									</div>
-								</div>
-
-								<p className="font-bold text-base text-white leading-relaxed lg:text-lg xl:text-xl 2xl:text-2xl">
-									{event.description}
-								</p>
-							</div>
+		<section
+			aria-label="Acara komunitas"
+			className="rounded-3xl border border-white/20 bg-white/15 p-4 text-white backdrop-blur-md lg:p-6"
+		>
+			<article
+				aria-atomic="true"
+				aria-live="polite"
+				className={`grid min-h-48 gap-5 ${event.image ? "sm:grid-cols-[minmax(10rem,1fr)_2fr]" : "grid-cols-1"}`}
+				role="status"
+			>
+				{event.image && (
+					<img
+						alt=""
+						className="h-48 w-full rounded-2xl object-cover sm:h-full sm:min-h-56"
+						src={event.image}
+					/>
+				)}
+				<div className="min-w-0 self-center">
+					<h2 className="break-words font-bold text-xl leading-tight lg:text-2xl xl:text-3xl">
+						{event.title}
+					</h2>
+					<dl className="mt-4 grid gap-3 text-base lg:text-lg">
+						<div className="flex min-w-0 items-start gap-3">
+							<Calendar aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+							<dt className="sr-only">Tanggal</dt>
+							<dd className="min-w-0 break-words">{event.date}</dd>
 						</div>
-					))}
+						<div className="flex min-w-0 items-start gap-3">
+							<Clock aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+							<dt className="sr-only">Waktu</dt>
+							<dd className="min-w-0 break-words">{event.time}</dd>
+						</div>
+						<div className="flex min-w-0 items-start gap-3">
+							<MapPin aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+							<dt className="sr-only">Lokasi</dt>
+							<dd className="min-w-0 break-words">{event.location}</dd>
+						</div>
+					</dl>
+					{event.description && (
+						<p className="mt-4 whitespace-pre-wrap break-words text-base leading-relaxed lg:text-lg">
+							{event.description}
+						</p>
+					)}
 				</div>
-			</div>
+			</article>
 
-			{/* Navigation Dots */}
-			<div className="mt-6 flex justify-center">
-				<div className="flex gap-3">
-					{events.map((event, index) => (
-						<button
-							type="button"
-							key={event.id}
-							onClick={() => setCurrentIndex(index)}
-							className={`h-3 w-3 rounded-full transition-colors ${
-								index === currentIndex ? "bg-blue-300" : "bg-white/30"
-							}`}
-						/>
-					))}
+			{events.length > 1 && (
+				<div
+					className="mt-4 flex items-center justify-end gap-1"
+					role="group"
+					aria-label="Kontrol acara"
+				>
+					<button
+						aria-label="Acara sebelumnya"
+						className="display-control"
+						onClick={previous}
+						type="button"
+					>
+						<ChevronLeft aria-hidden="true" />
+					</button>
+					<span
+						aria-live="off"
+						className="min-w-12 text-center font-semibold text-sm"
+					>
+						{currentIndex + 1} / {events.length}
+					</span>
+					<button
+						aria-label="Acara berikutnya"
+						className="display-control"
+						onClick={next}
+						type="button"
+					>
+						<ChevronRight aria-hidden="true" />
+					</button>
+					<button
+						aria-label={
+							isPaused ? "Lanjutkan acara otomatis" : "Jeda acara otomatis"
+						}
+						aria-pressed={isPaused}
+						className="display-control"
+						onClick={togglePaused}
+						type="button"
+					>
+						{isPaused ? (
+							<Play aria-hidden="true" />
+						) : (
+							<Pause aria-hidden="true" />
+						)}
+					</button>
 				</div>
-			</div>
-		</div>
+			)}
+		</section>
 	)
 }
 

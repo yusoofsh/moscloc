@@ -1,6 +1,5 @@
 import { MapPin, Phone } from "lucide-react"
 import type React from "react"
-import { useEffect, useState } from "react"
 import { usePrayerContext } from "../contexts/PrayerContext"
 import AnnouncementBanner from "./AnnouncementBanner"
 import CommunityEventsCard from "./CommunityEvents"
@@ -12,18 +11,9 @@ import QuranVerseCard from "./QuranVerse"
 
 const PrayerDisplay: React.FC = () => {
 	const { mosqueInfo, announcements } = usePrayerContext()
-	const [_currentTime, setCurrentTime] = useState(new Date())
-
-	useEffect(() => {
-		const timer = setInterval(() => {
-			setCurrentTime(new Date())
-		}, 1000)
-
-		return () => clearInterval(timer)
-	}, [])
 
 	return (
-		<div className="relative min-h-screen overflow-hidden">
+		<div className="relative min-h-screen overflow-x-clip bg-emerald-950">
 			<button
 				type="button"
 				onClick={() => document.getElementById("main-content")?.focus()}
@@ -32,16 +22,11 @@ const PrayerDisplay: React.FC = () => {
 				Lewati ke konten utama
 			</button>
 
-			{/* Background Image with Reduced Overlay */}
 			<div
-				className="absolute inset-0 bg-center bg-cover"
-				style={{
-					backgroundImage:
-						'url("https://i.postimg.cc/P5YhQ57V/Whats-App-Image-2025-06-13-at-2-28-54-PM.jpg")',
-				}}
-			>
-				<div className="absolute inset-0 bg-gradient-to-br from-emerald-900/60 via-slate-900/65 to-emerald-800/60" />
-			</div>
+				aria-hidden="true"
+				className="display-backdrop absolute inset-0"
+				data-testid="display-background"
+			/>
 
 			{/* Main Content */}
 			<main
@@ -50,10 +35,10 @@ const PrayerDisplay: React.FC = () => {
 				className="relative z-10 flex min-h-screen flex-col"
 			>
 				{/* Header Section */}
-				<div className="flex-shrink-0 p-4 lg:p-6">
-					<div className="flex items-start justify-between">
+				<header className="p-4 lg:p-6">
+					<div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
 						{/* Mosque Info */}
-						<div className="text-white">
+						<div className="min-w-0 text-white">
 							<div className="mb-4 flex items-center gap-4">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -73,38 +58,35 @@ const PrayerDisplay: React.FC = () => {
 									<path d="M48,208H16V152a16,16,0,0,1,16-16h0a16,16,0,0,1,16,16" />
 									<path d="M48,208V128c0-64,80-72,80-104,0,32,80,40,80,104v80H176V176a16,16,0,0,0-16-16h0a16,16,0,0,0-16,16v32H112V176a16,16,0,0,0-16-16h0a16,16,0,0,0-16,16v32Z" />
 								</svg>
-								<h1 className="font-bold text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl">
+								<h1 className="min-w-0 break-words font-bold text-3xl leading-tight lg:text-4xl xl:text-5xl 2xl:text-6xl">
 									{mosqueInfo.name}
 								</h1>
 							</div>
 							<div className="mb-2 flex items-center gap-3 text-white">
 								<MapPin size={22} />
-								<span className="font-medium text-lg lg:text-xl xl:text-2xl 2xl:text-3xl">
+								<span className="min-w-0 break-words font-medium text-lg lg:text-xl xl:text-2xl 2xl:text-3xl">
 									{mosqueInfo.address}
 								</span>
 							</div>
 							<div className="flex items-center gap-3 text-white">
 								<Phone size={22} />
-								<span className="font-medium text-base lg:text-lg xl:text-xl 2xl:text-2xl">
+								<span className="min-w-0 break-words font-medium text-base lg:text-lg xl:text-xl 2xl:text-2xl">
 									{mosqueInfo.contact.replace("Tel: ", "")}
 								</span>
 							</div>
 						</div>
 
 						{/* Current Time & Date */}
-						<div className="text-right text-white">
+						<div className="shrink-0 self-end text-right text-white sm:self-auto">
 							<CurrentTime />
 							<IslamicCalendar />
 						</div>
 					</div>
-				</div>
-
-				{/* Spacer to push content to bottom */}
-				<div className="flex-1" />
+				</header>
 
 				{/* Bottom Content Section - Full Width */}
-				<div className="flex min-h-[60vh] flex-shrink-0 items-center justify-center px-6 pb-8 lg:px-8">
-					<div className="w-full space-y-6">
+				<div className="mt-auto px-3 pb-6 sm:px-6 lg:px-8 lg:pb-8">
+					<div className="mx-auto w-full max-w-[120rem] space-y-6">
 						{/* Horizontal Card Layout - Full Screen Width */}
 						<div className="w-full">
 							<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

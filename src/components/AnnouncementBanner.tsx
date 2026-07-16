@@ -1,6 +1,6 @@
-import { Volume2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Pause, Play, Volume2 } from "lucide-react"
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useRotatingContent } from "../hooks/useRotatingContent"
 
 interface AnnouncementBannerProps {
 	announcements: string[]
@@ -9,63 +9,80 @@ interface AnnouncementBannerProps {
 const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
 	announcements,
 }) => {
-	const [currentIndex, setCurrentIndex] = useState(0)
-
-	useEffect(() => {
-		if (announcements.length <= 1) return
-
-		const interval = setInterval(() => {
-			setCurrentIndex((prevIndex) =>
-				prevIndex === announcements.length - 1 ? 0 : prevIndex + 1,
-			)
-		}, 5000) // Change announcement every 5 seconds
-
-		return () => clearInterval(interval)
-	}, [announcements.length])
+	const { currentIndex, isPaused, next, previous, togglePaused } =
+		useRotatingContent({ itemCount: announcements.length, intervalMs: 10_000 })
 
 	if (!announcements.length) return null
 
 	return (
-		<div className="rounded-3xl border border-white/20 bg-white/15 p-4 backdrop-blur-md lg:p-6">
-			<div className="flex items-center gap-6">
-				<div className="flex-shrink-0">
-					<div className="rounded-2xl border border-red-400/30 bg-red-500/30 p-4">
-						<Volume2 size={30} className="text-red-300" />
+		<section
+			aria-label="Pengumuman masjid"
+			className="rounded-3xl border border-white/20 bg-white/15 p-4 text-white backdrop-blur-md lg:p-6"
+		>
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+				<div className="flex min-w-0 flex-1 items-start gap-4 sm:items-center">
+					<div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-red-400/30 bg-red-500/30">
+						<Volume2 aria-hidden="true" className="size-7 text-red-200" />
 					</div>
-				</div>
-
-				<div className="relative flex-1 overflow-hidden">
-					<div
-						className="flex transition-transform duration-500 ease-in-out"
-						style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+					<p
+						aria-atomic="true"
+						aria-live="polite"
+						className="min-w-0 whitespace-normal break-words font-bold text-lg leading-relaxed lg:text-xl xl:text-2xl"
+						role="status"
 					>
-						{announcements.map((announcement) => (
-							<div
-								key={`announcement-${announcement}`}
-								className="w-full flex-shrink-0 font-bold text-lg text-white lg:text-xl xl:text-2xl 2xl:text-3xl"
-							>
-								{announcement}
-							</div>
-						))}
-					</div>
+						{announcements[currentIndex]}
+					</p>
 				</div>
 
 				{announcements.length > 1 && (
-					<div className="flex gap-2">
-						{announcements.map((announcement, index) => (
-							<button
-								type="button"
-								key={`nav-${announcement}`}
-								onClick={() => setCurrentIndex(index)}
-								className={`h-3 w-3 rounded-full transition-colors ${
-									index === currentIndex ? "bg-white" : "bg-white/30"
-								}`}
-							/>
-						))}
+					<div
+						aria-label="Kontrol pengumuman"
+						className="flex shrink-0 items-center justify-end gap-1"
+						role="group"
+					>
+						<button
+							aria-label="Pengumuman sebelumnya"
+							className="display-control"
+							onClick={previous}
+							type="button"
+						>
+							<ChevronLeft aria-hidden="true" />
+						</button>
+						<span
+							aria-live="off"
+							className="min-w-12 text-center font-semibold text-sm"
+						>
+							{currentIndex + 1} / {announcements.length}
+						</span>
+						<button
+							aria-label="Pengumuman berikutnya"
+							className="display-control"
+							onClick={next}
+							type="button"
+						>
+							<ChevronRight aria-hidden="true" />
+						</button>
+						<button
+							aria-label={
+								isPaused
+									? "Lanjutkan pengumuman otomatis"
+									: "Jeda pengumuman otomatis"
+							}
+							aria-pressed={isPaused}
+							className="display-control"
+							onClick={togglePaused}
+							type="button"
+						>
+							{isPaused ? (
+								<Play aria-hidden="true" />
+							) : (
+								<Pause aria-hidden="true" />
+							)}
+						</button>
 					</div>
 				)}
 			</div>
-		</div>
+		</section>
 	)
 }
 
