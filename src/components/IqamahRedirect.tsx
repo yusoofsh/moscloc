@@ -104,9 +104,9 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 		>
 			<div className="rounded-lg bg-white p-4 text-center shadow-2xl">
 				<h2 className="mb-4 font-bold text-2xl text-gray-900">
-					Waktu Adzan Tiba!
+					Waktu Iqamah Segera Tiba!
 				</h2>
-				<p className="mb-6 text-gray-600">Iqamah dalam:</p>
+				<p className="mb-6 text-gray-600">Membuka layar iqamah dalam:</p>
 				<div className="mb-6 font-bold text-6xl text-emerald-600">
 					{prompt.countdownSeconds}
 				</div>

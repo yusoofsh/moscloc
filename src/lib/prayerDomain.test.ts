@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
 	defaultPrayerSettings,
+	normalizeIqamahIntervals,
 	normalizePrayerSettings,
 	normalizePrayerTimes,
 } from "./prayerDomain"
@@ -63,6 +64,34 @@ describe("prayerDomain", () => {
 		).toEqual({
 			...defaultPrayerSettings,
 			school: 1,
+		})
+	})
+
+	it("requires discrete integer prayer settings", () => {
+		expect(
+			normalizePrayerSettings({
+				method: 4.5,
+				school: 0.5,
+				midnightMode: 0.5,
+			}),
+		).toEqual(defaultPrayerSettings)
+	})
+
+	it("keeps persisted iqamah intervals within the admin integer contract", () => {
+		expect(
+			normalizeIqamahIntervals({
+				fajr: 0,
+				dhuhr: 1,
+				asr: 30.5,
+				maghrib: 60,
+				isha: 61,
+			}),
+		).toEqual({
+			fajr: 15,
+			dhuhr: 1,
+			asr: 10,
+			maghrib: 60,
+			isha: 10,
 		})
 	})
 })

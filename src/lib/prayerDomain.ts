@@ -143,6 +143,20 @@ function finiteNumber(
 		: fallback
 }
 
+function integerNumber(
+	value: unknown,
+	fallback: number,
+	min: number,
+	max: number,
+) {
+	return typeof value === "number" &&
+		Number.isInteger(value) &&
+		value >= min &&
+		value <= max
+		? value
+		: fallback
+}
+
 function stringValue(value: unknown, fallback: string, maxLength = 5000) {
 	return typeof value === "string" && value.length <= maxLength
 		? value
@@ -190,11 +204,11 @@ export function normalizePrayerSettings(value: unknown): PrayerSettings {
 	if (!isRecord(value)) return { ...defaultPrayerSettings }
 	const legacyTimeZone = value.timezonestring ?? value.timezone
 	return {
-		method: finiteNumber(value.method, defaultPrayerSettings.method, 0, 99),
+		method: integerNumber(value.method, defaultPrayerSettings.method, 0, 99),
 		shafaq: stringValue(value.shafaq, defaultPrayerSettings.shafaq, 50),
 		tune: stringValue(value.tune, defaultPrayerSettings.tune, 200),
-		school: finiteNumber(value.school, defaultPrayerSettings.school, 0, 1),
-		midnightMode: finiteNumber(
+		school: integerNumber(value.school, defaultPrayerSettings.school, 0, 1),
+		midnightMode: integerNumber(
 			value.midnightMode,
 			defaultPrayerSettings.midnightMode,
 			0,
@@ -225,16 +239,16 @@ export function normalizeMosqueInfo(value: unknown): MosqueInfo {
 export function normalizeIqamahIntervals(value: unknown): IqamahIntervals {
 	const source = isRecord(value) ? value : {}
 	return {
-		fajr: finiteNumber(source.fajr, defaultIqamahIntervals.fajr, 0, 180),
-		dhuhr: finiteNumber(source.dhuhr, defaultIqamahIntervals.dhuhr, 0, 180),
-		asr: finiteNumber(source.asr, defaultIqamahIntervals.asr, 0, 180),
-		maghrib: finiteNumber(
+		fajr: integerNumber(source.fajr, defaultIqamahIntervals.fajr, 1, 60),
+		dhuhr: integerNumber(source.dhuhr, defaultIqamahIntervals.dhuhr, 1, 60),
+		asr: integerNumber(source.asr, defaultIqamahIntervals.asr, 1, 60),
+		maghrib: integerNumber(
 			source.maghrib,
 			defaultIqamahIntervals.maghrib,
-			0,
-			180,
+			1,
+			60,
 		),
-		isha: finiteNumber(source.isha, defaultIqamahIntervals.isha, 0, 180),
+		isha: integerNumber(source.isha, defaultIqamahIntervals.isha, 1, 60),
 	}
 }
 

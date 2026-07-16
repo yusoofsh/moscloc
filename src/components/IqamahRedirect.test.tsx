@@ -29,6 +29,12 @@ describe("IqamahRedirect", () => {
 		)
 
 		await expect.element(page.getByTestId("iqamah-redirect")).toBeVisible()
+		await expect
+			.element(page.getByText("Waktu Iqamah Segera Tiba!"))
+			.toBeVisible()
+		await expect
+			.element(page.getByText("Membuka layar iqamah dalam:"))
+			.toBeVisible()
 		await page.getByRole("button", { name: "Batal" }).click()
 		await vi.advanceTimersByTimeAsync(2_000)
 
