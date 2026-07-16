@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react"
+import { act, render, renderHook, waitFor } from "@testing-library/react"
 import { delay, HttpResponse, http } from "msw"
 import type { ReactNode } from "react"
 import { beforeEach, describe, expect, it } from "vitest"
@@ -7,7 +7,9 @@ import {
 	defaultPrayerTimes,
 	getCurrentAndNextPrayerForTime,
 	PrayerProvider,
+	useMosqueContentContext,
 	usePrayerContext,
+	usePrayerScheduleContext,
 } from "./PrayerContext"
 
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -37,6 +39,54 @@ describe("PrayerContext", () => {
 
 		expect(result.current.prayerTimes).toBeDefined()
 		expect(result.current.prayerTimes.fajr).toBeDefined()
+	})
+
+	it("isolates content consumers from live schedule updates", async () => {
+		let contentRenders = 0
+		let scheduleRenders = 0
+		let contentContext: ReturnType<typeof useMosqueContentContext> | undefined
+		let scheduleContext: ReturnType<typeof usePrayerScheduleContext> | undefined
+
+		const ContentProbe = () => {
+			contentRenders += 1
+			contentContext = useMosqueContentContext()
+			return null
+		}
+		const ScheduleProbe = () => {
+			scheduleRenders += 1
+			scheduleContext = usePrayerScheduleContext()
+			return null
+		}
+
+		render(
+			<PrayerProvider>
+				<ContentProbe />
+				<ScheduleProbe />
+			</PrayerProvider>,
+		)
+		await waitFor(() =>
+			expect(scheduleContext?.prayerTimesStatus).toBe("fresh"),
+		)
+
+		const contentRendersBeforeScheduleUpdate = contentRenders
+		act(() => {
+			scheduleContext?.updatePrayerSettings({
+				...scheduleContext.prayerSettings,
+				method: 5,
+			})
+		})
+		await waitFor(() => {
+			expect(scheduleContext?.prayerSettings.method).toBe(5)
+			expect(scheduleContext?.prayerTimesStatus).toBe("fresh")
+		})
+		expect(contentRenders).toBe(contentRendersBeforeScheduleUpdate)
+
+		const scheduleRendersBeforeContentUpdate = scheduleRenders
+		act(() => contentContext?.updateAnnouncements(["Pengumuman terisolasi"]))
+		await waitFor(() =>
+			expect(contentContext?.announcements).toEqual(["Pengumuman terisolasi"]),
+		)
+		expect(scheduleRenders).toBe(scheduleRendersBeforeContentUpdate)
 	})
 
 	it("provides default mosque info", () => {

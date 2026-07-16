@@ -71,7 +71,7 @@ The admin page is the app's settings surface, but it currently hand-codes repeat
 **Out of scope**:
 
 - `PrayerDisplay.tsx`, `PrayerTimes.tsx`, `QuranVerse.tsx`, `CommunityEvents.tsx`, `AnnouncementBanner.tsx`, and `IqamahCountdown.tsx`.
-- Prayer context, Aladhan API logic, localStorage persistence, Tauri config, router config, and generated `routeTree.gen.ts`.
+- Prayer context, Aladhan API logic, localStorage persistence, deployment config, router config, and generated `routeTree.gen.ts`.
 - Adding authentication to admin.
 - Running `shadcn migrate rtl`.
 - Visual redesign beyond replacing primitives and preserving current layout intent.
@@ -278,7 +278,7 @@ Stop and report back if:
 
 - Plan 001 is not complete.
 - `AdminPanel.tsx` has been split or heavily rewritten since this plan was written and the cited blocks no longer exist.
-- A shadcn component import requires touching route, context, service, or Tauri files.
+- A shadcn component import requires touching route, context, service, or deployment files.
 - Replacing controls changes form state shape or persistence semantics.
 - Focused E2E tests fail twice after reasonable local fixes.
 - You need to change authentication or add new admin protection logic to make tests pass.

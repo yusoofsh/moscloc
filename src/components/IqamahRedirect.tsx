@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router"
 import { useEffect, useRef, useState } from "react"
 import { Button } from "~/components/ui/button"
-import { usePrayerContext } from "../contexts/PrayerContext"
+import { usePrayerScheduleContext } from "../contexts/PrayerContext"
 import {
 	getNextIqamahRedirectEvent,
 	type IqamahRedirectEvent,
@@ -21,7 +21,8 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 	autoRedirect = true,
 	redirectDelaySeconds = 5,
 }) => {
-	const { prayerTimes, iqamahIntervals, prayerSettings } = usePrayerContext()
+	const { prayerTimes, iqamahIntervals, prayerSettings } =
+		usePrayerScheduleContext()
 	const navigate = useNavigate()
 	const [prompt, setPrompt] = useState<VisiblePrompt | null>(null)
 	const dismissedEventIdRef = useRef<string | null>(null)

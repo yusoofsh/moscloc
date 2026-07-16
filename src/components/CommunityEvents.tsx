@@ -8,11 +8,11 @@ import {
 	Play,
 } from "lucide-react"
 import type React from "react"
-import { usePrayerContext } from "../contexts/PrayerContext"
+import { useMosqueContentContext } from "../contexts/PrayerContext"
 import { useRotatingContent } from "../hooks/useRotatingContent"
 
 const CommunityEventsCard: React.FC = () => {
-	const { events } = usePrayerContext()
+	const { events } = useMosqueContentContext()
 	const { currentIndex, isPaused, next, previous, togglePaused } =
 		useRotatingContent({ itemCount: events.length, intervalMs: 12_000 })
 	const event = events[currentIndex]

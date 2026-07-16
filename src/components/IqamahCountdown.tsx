@@ -1,6 +1,9 @@
 import { Navigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { usePrayerContext } from "../contexts/PrayerContext"
+import {
+	useMosqueContentContext,
+	usePrayerScheduleContext,
+} from "../contexts/PrayerContext"
 import {
 	getIqamahCountdownState,
 	type IqamahCountdownState,
@@ -15,8 +18,9 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 	prayerName,
 	onComplete,
 }) => {
-	const { prayerTimes, iqamahIntervals, mosqueInfo, prayerSettings } =
-		usePrayerContext()
+	const { mosqueInfo } = useMosqueContentContext()
+	const { prayerTimes, iqamahIntervals, prayerSettings } =
+		usePrayerScheduleContext()
 	const [iqamahState, setIqamahState] = useState<IqamahCountdownState>({
 		status: "inactive",
 	})

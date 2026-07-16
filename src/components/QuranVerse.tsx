@@ -1,10 +1,10 @@
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react"
 import type React from "react"
-import { usePrayerContext } from "../contexts/PrayerContext"
+import { useMosqueContentContext } from "../contexts/PrayerContext"
 import { useRotatingContent } from "../hooks/useRotatingContent"
 
 const QuranVerseCard: React.FC = () => {
-	const { verses } = usePrayerContext()
+	const { verses } = useMosqueContentContext()
 	const { currentIndex, isPaused, next, previous, togglePaused } =
 		useRotatingContent({ itemCount: verses.length, intervalMs: 15_000 })
 	const verse = verses[currentIndex]

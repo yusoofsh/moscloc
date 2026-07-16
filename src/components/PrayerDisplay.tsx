@@ -1,6 +1,6 @@
 import { MapPin, Phone } from "lucide-react"
 import type React from "react"
-import { usePrayerContext } from "../contexts/PrayerContext"
+import { useMosqueContentContext } from "../contexts/PrayerContext"
 import AnnouncementBanner from "./AnnouncementBanner"
 import CommunityEventsCard from "./CommunityEvents"
 import CurrentTime from "./CurrentTime"
@@ -10,7 +10,7 @@ import PrayerTimes from "./PrayerTimes"
 import QuranVerseCard from "./QuranVerse"
 
 const PrayerDisplay: React.FC = () => {
-	const { mosqueInfo, announcements } = usePrayerContext()
+	const { mosqueInfo, announcements } = useMosqueContentContext()
 
 	return (
 		<div className="relative min-h-screen overflow-x-clip bg-emerald-950">

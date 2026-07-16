@@ -1,7 +1,7 @@
 import { Moon, Sun, Sunrise, Sunset } from "lucide-react"
 import type React from "react"
 import { useEffect, useState } from "react"
-import { usePrayerContext } from "../contexts/PrayerContext"
+import { usePrayerScheduleContext } from "../contexts/PrayerContext"
 import { getPrayerCountdownSeconds } from "../lib/zonedTime"
 
 interface PrayerTime {
@@ -17,7 +17,7 @@ const PrayerTimes: React.FC = () => {
 		currentPrayer,
 		nextPrayer,
 		prayerSettings,
-	} = usePrayerContext()
+	} = usePrayerScheduleContext()
 	const [timeLeft, setTimeLeft] = useState("")
 
 	useEffect(() => {

@@ -8,28 +8,25 @@
 
 ## Commands
 
-| Task                              | Command                 |
-| --------------------------------- | ----------------------- |
-| Start Vite on port 5173           | `nub run dev`           |
-| Build the web app                 | `nub run build`         |
-| Preview the web build             | `nub run serve`         |
-| Check formatting, lint, and types | `nub run check`         |
-| Apply formatting and lint fixes   | `nub run check:fix`     |
-| Run unit tests                    | `nub run test:unit`     |
-| Run browser component tests       | `nub run test:browser`  |
-| Run Playwright end-to-end tests   | `nub run test:e2e`      |
-| Run the full verification gate    | `nub run test`          |
-| Start the Tauri app               | `nub run desktop:dev`   |
-| Build the Tauri app               | `nub run desktop:build` |
+| Task                              | Command                |
+| --------------------------------- | ---------------------- |
+| Start Vite on port 5173           | `nub run dev`          |
+| Build the web app                 | `nub run build`        |
+| Preview the web build             | `nub run serve`        |
+| Check formatting, lint, and types | `nub run check`        |
+| Apply formatting and lint fixes   | `nub run check:fix`    |
+| Run unit tests                    | `nub run test:unit`    |
+| Run browser component tests       | `nub run test:browser` |
+| Run Playwright end-to-end tests   | `nub run test:e2e`     |
+| Run the full verification gate    | `nub run test`         |
 
 ## Architecture
 
 - React 19 and TanStack Router power the web interface
 - `src/routeTree.gen.ts` is generated; never edit it directly
-- `src/contexts/PrayerContext.tsx` owns application state and `localStorage` persistence
+- `src/contexts/PrayerContext.tsx` owns validated local state and exposes separate content and live-schedule contexts; the combined hook remains for admin composition
 - `src/services/prayerService.ts` integrates with the Aladhan API
-- `tauri/` wraps the same frontend for desktop use
-- Admin data is local to one browser profile or Tauri WebView; there is no remote admin backend or sync
+- Admin data is local to one browser profile; there is no remote admin backend or sync
 
 ## Routes
 

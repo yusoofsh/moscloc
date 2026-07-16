@@ -92,7 +92,7 @@ This plan creates a current shadcn/ui foundation while respecting the repo's est
 - Running `shadcn migrate rtl`.
 - Changing the package manager from Nub.
 - Creating or committing generated Playwright reports.
-- Changing routes, context state, prayer APIs, or Tauri config.
+- Changing routes, context state, prayer APIs, or deployment configuration.
 
 ## Git Workflow
 
@@ -316,7 +316,7 @@ Stop and report back if:
 - The CLI proposes writing generated primitives outside `src/components/ui`.
 - `src/index.css` has materially drifted from the excerpts above and the token merge is no longer straightforward.
 - `nub run check` fails twice after reasonable local fixes.
-- You need to touch app behavior files such as `AdminPanel.tsx`, `PrayerTimes.tsx`, `PrayerContext.tsx`, routes, or Tauri config.
+- You need to touch app behavior files such as `AdminPanel.tsx`, `PrayerTimes.tsx`, `PrayerContext.tsx`, routes, or deployment configuration.
 
 ## Maintenance Notes
 

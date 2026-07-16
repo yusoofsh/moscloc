@@ -1,11 +1,11 @@
 import type React from "react"
 import { useEffect, useState } from "react"
-import { useOptionalPrayerContext } from "../contexts/PrayerContext"
+import { useOptionalPrayerScheduleContext } from "../contexts/PrayerContext"
 import { defaultPrayerSettings } from "../lib/prayerDomain"
 import { formatZonedClock, formatZonedLongDate } from "../lib/zonedTime"
 
 const CurrentTime: React.FC = () => {
-	const prayerContext = useOptionalPrayerContext()
+	const prayerContext = useOptionalPrayerScheduleContext()
 	const timeZone =
 		prayerContext?.prayerSettings.timezonestring ??
 		defaultPrayerSettings.timezonestring

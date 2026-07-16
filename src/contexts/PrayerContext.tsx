@@ -5,6 +5,7 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react"
@@ -77,6 +78,39 @@ export interface PrayerContextType {
 }
 
 const PrayerContext = createContext<PrayerContextType | undefined>(undefined)
+
+export type MosqueContentContextType = Pick<
+	PrayerContextType,
+	| "mosqueInfo"
+	| "announcements"
+	| "events"
+	| "verses"
+	| "updateMosqueInfo"
+	| "updateAnnouncements"
+	| "updateEvents"
+	| "updateVerses"
+>
+
+export type PrayerScheduleContextType = Pick<
+	PrayerContextType,
+	| "prayerTimes"
+	| "prayerTimesStatus"
+	| "prayerTimesError"
+	| "prayerTimesUpdatedAt"
+	| "prayerSettings"
+	| "iqamahIntervals"
+	| "currentPrayer"
+	| "nextPrayer"
+	| "updatePrayerSettings"
+	| "updateIqamahIntervals"
+>
+
+const MosqueContentContext = createContext<
+	MosqueContentContextType | undefined
+>(undefined)
+const PrayerScheduleContext = createContext<
+	PrayerScheduleContextType | undefined
+>(undefined)
 
 export const getCurrentAndNextPrayerForTime = (
 	times: PrayerTimes,
@@ -213,60 +247,98 @@ export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 		updateCurrentAndNextPrayer,
 	])
 
-	const updateMosqueInfo = (info: MosqueInfo) => {
+	const updateMosqueInfo = useCallback((info: MosqueInfo) => {
 		const normalized = normalizeMosqueInfo(info)
 		setMosqueInfo(normalized)
 		persistPrayerStorageValue(storageRef.current, "mosqueInfo", normalized)
-	}
-	const updateAnnouncements = (value: string[]) => {
+	}, [])
+	const updateAnnouncements = useCallback((value: string[]) => {
 		const normalized = normalizeAnnouncements(value)
 		setAnnouncements(normalized)
 		persistPrayerStorageValue(storageRef.current, "announcements", normalized)
-	}
-	const updateEvents = (value: Event[]) => {
+	}, [])
+	const updateEvents = useCallback((value: Event[]) => {
 		const normalized = normalizeEvents(value)
 		setEvents(normalized)
 		persistPrayerStorageValue(storageRef.current, "events", normalized)
-	}
-	const updateVerses = (value: Verse[]) => {
+	}, [])
+	const updateVerses = useCallback((value: Verse[]) => {
 		const normalized = normalizeVerses(value)
 		setVerses(normalized)
 		persistPrayerStorageValue(storageRef.current, "verses", normalized)
-	}
-	const updatePrayerSettings = (value: PrayerSettings) => {
+	}, [])
+	const updatePrayerSettings = useCallback((value: PrayerSettings) => {
 		const normalized = normalizePrayerSettings(value)
 		setPrayerSettings(normalized)
 		persistPrayerStorageValue(storageRef.current, "prayerSettings", normalized)
-	}
-	const updateIqamahIntervals = (value: IqamahIntervals) => {
+	}, [])
+	const updateIqamahIntervals = useCallback((value: IqamahIntervals) => {
 		const normalized = normalizeIqamahIntervals(value)
 		setIqamahIntervals(normalized)
 		persistPrayerStorageValue(storageRef.current, "iqamahIntervals", normalized)
-	}
+	}, [])
 
-	const value: PrayerContextType = {
-		mosqueInfo,
-		prayerTimes,
-		prayerTimesStatus,
-		prayerTimesError,
-		prayerTimesUpdatedAt,
-		announcements,
-		events,
-		verses,
-		prayerSettings,
-		iqamahIntervals,
-		currentPrayer,
-		nextPrayer,
-		updateMosqueInfo,
-		updateAnnouncements,
-		updateEvents,
-		updateVerses,
-		updatePrayerSettings,
-		updateIqamahIntervals,
-	}
+	const contentValue = useMemo<MosqueContentContextType>(
+		() => ({
+			mosqueInfo,
+			announcements,
+			events,
+			verses,
+			updateMosqueInfo,
+			updateAnnouncements,
+			updateEvents,
+			updateVerses,
+		}),
+		[
+			mosqueInfo,
+			announcements,
+			events,
+			verses,
+			updateMosqueInfo,
+			updateAnnouncements,
+			updateEvents,
+			updateVerses,
+		],
+	)
+	const scheduleValue = useMemo<PrayerScheduleContextType>(
+		() => ({
+			prayerTimes,
+			prayerTimesStatus,
+			prayerTimesError,
+			prayerTimesUpdatedAt,
+			prayerSettings,
+			iqamahIntervals,
+			currentPrayer,
+			nextPrayer,
+			updatePrayerSettings,
+			updateIqamahIntervals,
+		}),
+		[
+			prayerTimes,
+			prayerTimesStatus,
+			prayerTimesError,
+			prayerTimesUpdatedAt,
+			prayerSettings,
+			iqamahIntervals,
+			currentPrayer,
+			nextPrayer,
+			updatePrayerSettings,
+			updateIqamahIntervals,
+		],
+	)
+	const value = useMemo<PrayerContextType>(
+		() => ({ ...contentValue, ...scheduleValue }),
+		[contentValue, scheduleValue],
+	)
 
 	return (
-		<PrayerContext.Provider value={value}>{children}</PrayerContext.Provider>
+		<MosqueContentContext.Provider value={contentValue}>
+			<PrayerScheduleContext.Provider value={scheduleValue}>
+				<PrayerContext.Provider value={value}>
+					{children}
+				</PrayerContext.Provider>
+			</PrayerScheduleContext.Provider>
+		</MosqueContentContext.Provider>
 	)
 }
 
@@ -279,3 +351,26 @@ export const usePrayerContext = () => {
 }
 
 export const useOptionalPrayerContext = () => useContext(PrayerContext)
+
+export const useMosqueContentContext = () => {
+	const context = useContext(MosqueContentContext)
+	if (context === undefined) {
+		throw new Error(
+			"useMosqueContentContext must be used within a PrayerProvider",
+		)
+	}
+	return context
+}
+
+export const usePrayerScheduleContext = () => {
+	const context = useContext(PrayerScheduleContext)
+	if (context === undefined) {
+		throw new Error(
+			"usePrayerScheduleContext must be used within a PrayerProvider",
+		)
+	}
+	return context
+}
+
+export const useOptionalPrayerScheduleContext = () =>
+	useContext(PrayerScheduleContext)

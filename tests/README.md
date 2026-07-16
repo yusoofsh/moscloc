@@ -17,7 +17,7 @@ nub exec playwright install chromium webkit
 | Quality    | `nub run check`        | Node.js                | Oxfmt check, Oxlint, and TypeScript            |
 | Unit       | `nub run test:unit`    | jsdom                  | Services, hooks, contexts, and library modules |
 | Component  | `nub run test:browser` | Headless Chromium      | `src/components/**/*.test.tsx`                 |
-| End-to-end | `nub run test:e2e`     | Desktop WebKit         | `tests/*.spec.ts` against local Vite           |
+| End-to-end | `nub run test:e2e`     | WebKit browser         | `tests/*.spec.ts` against local Vite           |
 | Full gate  | `nub run test`         | All environments above | Quality, unit, component, then end-to-end      |
 
 Watch unit or component tests during development:

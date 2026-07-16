@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { useOptionalPrayerContext } from "../contexts/PrayerContext"
+import { useOptionalPrayerScheduleContext } from "../contexts/PrayerContext"
 import { defaultPrayerSettings } from "../lib/prayerDomain"
 import {
 	formatApiDate,
@@ -34,7 +34,7 @@ const islamicMonths = [
 ]
 
 export const useIslamicDate = (timeZone?: string): IslamicDate => {
-	const prayerContext = useOptionalPrayerContext()
+	const prayerContext = useOptionalPrayerScheduleContext()
 	const configuredTimeZone =
 		timeZone ??
 		prayerContext?.prayerSettings.timezonestring ??

@@ -1,6 +1,6 @@
 # Moscloc
 
-Moscloc is a local-first mosque information display for prayer times, announcements, events, Quran verses, and Iqamah countdowns. It runs as a Vite web app or inside a Tauri desktop window.
+Moscloc is a local-first web display for mosque prayer times, announcements, events, Quran verses, and Iqamah countdowns.
 
 ## Current capabilities
 
@@ -8,14 +8,12 @@ Moscloc is a local-first mosque information display for prayer times, announceme
 - Display the current time, current prayer, next prayer, announcements, events, and Quran verses
 - Configure mosque details, prayer calculation settings, content, and Iqamah intervals at `/admin`
 - Open `/iqamah` during an active Adhan-to-Iqamah window and return to the main display outside that window
-- Persist settings in the current browser profile or Tauri WebView with `localStorage`
+- Persist settings in the current browser profile with `localStorage`
 - Render an Indonesian interface with Arabic Quran text
 
 ## Local-first scope
 
-Moscloc has no application backend, account system, or remote administration service. Changes from `/admin` affect only the browser profile or Tauri app data on that device. They do not sync to other browsers, computers, or displays.
-
-The Tauri app wraps the same frontend and uses the configuration under `tauri/`. Its data remains local to the desktop app's WebView storage.
+Moscloc has no application backend, account system, or remote administration service. Changes from `/admin` affect only the current browser profile. They do not sync to other browsers, computers, or displays.
 
 Moscloc does not currently include an installable Progressive Web App (PWA), a theme selector, or locale switching. Those capabilities require separate implementation work.
 
@@ -23,7 +21,6 @@ Moscloc does not currently include an installable Progressive Web App (PWA), a t
 
 - Node.js 26.3.1
 - [NubJS](https://github.com/nubjs/nub) 0.2.x
-- Rust toolchain and platform prerequisites for Tauri development
 
 ## Run the web app
 
@@ -41,20 +38,6 @@ Open these local routes:
 | Mosque display   | `http://localhost:5173/`       |
 | Local admin      | `http://localhost:5173/admin`  |
 | Iqamah countdown | `http://localhost:5173/iqamah` |
-
-## Run the desktop app
-
-Start the Tauri development app:
-
-```bash
-nub run desktop:dev
-```
-
-Build platform installers with:
-
-```bash
-nub run desktop:build
-```
 
 ## Build and verify
 
@@ -79,15 +62,14 @@ See [`tests/README.md`](tests/README.md) for the test matrix and Playwright beha
 
 ## Architecture
 
-| Path                                 | Responsibility                                         |
-| ------------------------------------ | ------------------------------------------------------ |
-| `src/contexts/PrayerContext.tsx`     | State, Aladhan refresh schedule, and local persistence |
-| `src/services/prayerService.ts`      | Aladhan prayer-time API integration                    |
-| `src/components/PrayerDisplay.tsx`   | Main mosque display                                    |
-| `src/components/AdminPanel.tsx`      | Local settings and content editor                      |
-| `src/components/IqamahCountdown.tsx` | Iqamah countdown display                               |
-| `src/routes/`                        | TanStack Router file-based routes                      |
-| `tauri/`                             | Tauri desktop wrapper                                  |
+| Path                                 | Responsibility                                                             |
+| ------------------------------------ | -------------------------------------------------------------------------- |
+| `src/contexts/PrayerContext.tsx`     | Validated local persistence plus isolated content and live prayer contexts |
+| `src/services/prayerService.ts`      | Aladhan prayer-time API integration                                        |
+| `src/components/PrayerDisplay.tsx`   | Main mosque display                                                        |
+| `src/components/AdminPanel.tsx`      | Local settings and content editor                                          |
+| `src/components/IqamahCountdown.tsx` | Iqamah countdown display                                                   |
+| `src/routes/`                        | TanStack Router file-based routes                                          |
 
 TanStack Router generates `src/routeTree.gen.ts`; do not edit that file directly.
 
