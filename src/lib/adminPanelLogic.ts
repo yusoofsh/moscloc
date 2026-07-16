@@ -66,10 +66,14 @@ export function validateMosqueInfo(
 
 	if (!Number.isFinite(info.latitude)) {
 		errors.push("Lintang harus berupa angka yang valid.")
+	} else if (info.latitude < -90 || info.latitude > 90) {
+		errors.push("Lintang harus berada di antara -90 dan 90.")
 	}
 
 	if (!Number.isFinite(info.longitude)) {
 		errors.push("Bujur harus berupa angka yang valid.")
+	} else if (info.longitude < -180 || info.longitude > 180) {
+		errors.push("Bujur harus berada di antara -180 dan 180.")
 	}
 
 	if (errors.length > 0) {

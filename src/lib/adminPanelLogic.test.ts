@@ -63,6 +63,22 @@ describe("adminPanelLogic", () => {
 		})
 	})
 
+	it("rejects finite coordinates outside geographic bounds", () => {
+		expect(
+			validateMosqueInfo({
+				...mosqueInfo,
+				latitude: 90.1,
+				longitude: -180.1,
+			}),
+		).toEqual({
+			ok: false,
+			errors: [
+				"Lintang harus berada di antara -90 dan 90.",
+				"Bujur harus berada di antara -180 dan 180.",
+			],
+		})
+	})
+
 	it("accepts whole-minute iqamah intervals from 1 to 60", () => {
 		expect(validateIqamahIntervals(iqamahIntervals)).toEqual({
 			ok: true,
