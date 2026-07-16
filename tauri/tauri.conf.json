@@ -20,7 +20,18 @@
 			}
 		],
 		"security": {
-			"csp": null
+			"capabilities": ["main"],
+			"csp": {
+				"default-src": "'self'",
+				"base-uri": "'self'",
+				"connect-src": "'self' ipc: http://ipc.localhost https://api.aladhan.com",
+				"font-src": "'self' data: https://fonts.gstatic.com",
+				"frame-ancestors": "'none'",
+				"img-src": "'self' data: asset: http://asset.localhost https://i.postimg.cc",
+				"object-src": "'none'",
+				"script-src": "'self'",
+				"style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com"
+			}
 		}
 	},
 	"bundle": {
