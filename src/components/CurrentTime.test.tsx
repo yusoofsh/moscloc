@@ -6,7 +6,7 @@ import CurrentTime from "./CurrentTime"
 describe("CurrentTime", () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
-		vi.setSystemTime(new Date("2024-01-15T14:30:00"))
+		vi.setSystemTime(new Date("2024-01-15T07:30:00.000Z"))
 	})
 
 	afterEach(() => {

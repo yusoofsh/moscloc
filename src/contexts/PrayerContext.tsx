@@ -8,62 +8,59 @@ import {
 	useRef,
 	useState,
 } from "react"
+import {
+	defaultPrayerSettings,
+	defaultPrayerTimes,
+	normalizeAnnouncements,
+	normalizeEvents,
+	normalizeIqamahIntervals,
+	normalizeMosqueInfo,
+	normalizePrayerSettings,
+	normalizeVerses,
+	type Event,
+	type IqamahIntervals,
+	type MosqueInfo,
+	type PrayerSettings,
+	type PrayerTimes,
+	type Verse,
+} from "../lib/prayerDomain"
+import {
+	getBrowserStorage,
+	hydratePrayerStorage,
+	persistPrayerStorageValue,
+} from "../lib/prayerStorage"
+import {
+	getCurrentAndNextPrayerForTime as calculateCurrentAndNextPrayer,
+	millisecondsUntilNextZonedMidnight,
+} from "../lib/zonedTime"
 import { getPrayerTimes } from "../services/prayerService"
 
-export interface MosqueInfo {
-	name: string
-	address: string
-	contact: string
-	latitude: number
-	longitude: number
-}
+export type {
+	Event,
+	IqamahIntervals,
+	MosqueInfo,
+	PrayerSettings,
+	PrayerTimes,
+	Verse,
+} from "../lib/prayerDomain"
+export {
+	defaultAnnouncements,
+	defaultEvents,
+	defaultIqamahIntervals,
+	defaultMosqueInfo,
+	defaultPrayerSettings,
+	defaultPrayerTimes,
+	defaultVerses,
+} from "../lib/prayerDomain"
 
-export interface Event {
-	id: string
-	title: string
-	date: string
-	time: string
-	location: string
-	image: string
-	description: string
-}
+export type PrayerTimesStatus = "loading" | "fresh" | "stale" | "error"
 
-export interface Verse {
-	id: string
-	arabic: string
-	translation: string
-	reference: string
-}
-
-export interface PrayerSettings {
-	method: number
-	shafaq: string
-	tune: string
-	school: number
-	midnightMode: number
-	timezonestring: string
-}
-
-export interface IqamahIntervals {
-	fajr: number
-	dhuhr: number
-	asr: number
-	maghrib: number
-	isha: number
-}
-
-export interface PrayerTimes {
-	fajr: string
-	sunrise: string
-	dhuhr: string
-	asr: string
-	maghrib: string
-	isha: string
-}
-
-interface PrayerContextType {
+export interface PrayerContextType {
 	mosqueInfo: MosqueInfo
 	prayerTimes: PrayerTimes
+	prayerTimesStatus: PrayerTimesStatus
+	prayerTimesError: string | null
+	prayerTimesUpdatedAt: string | null
 	announcements: string[]
 	events: Event[]
 	verses: Verse[]
@@ -81,271 +78,178 @@ interface PrayerContextType {
 
 const PrayerContext = createContext<PrayerContextType | undefined>(undefined)
 
-export const defaultMosqueInfo: MosqueInfo = {
-	name: "Masjid Darul Arqom",
-	address: "Jalan Kramatan, Kecamatan Pakisaji, Kabupaten Malang",
-	contact: "Tel: +62 21 123456",
-	latitude: -8.0679373,
-	longitude: 112.5988417,
-}
-
-export const defaultPrayerTimes: PrayerTimes = {
-	fajr: "04:26",
-	sunrise: "05:50",
-	dhuhr: "12:03",
-	asr: "15:03",
-	maghrib: "17:58",
-	isha: "18:59",
-}
-
-export const defaultPrayerSettings: PrayerSettings = {
-	method: 20,
-	shafaq: "general",
-	tune: "10,10,-1,1,2,3,3,2,0",
-	school: 0,
-	midnightMode: 0,
-	timezonestring: "Asia/Jakarta",
-}
-
-export const defaultIqamahIntervals: IqamahIntervals = {
-	fajr: 15,
-	dhuhr: 10,
-	asr: 10,
-	maghrib: 5,
-	isha: 10,
-}
-
-export const defaultAnnouncements = [
-	"Shalat Tarawih berjamaah setiap malam selama bulan Ramadhan",
-]
-
-export const defaultEvents: Event[] = []
-
 export const getCurrentAndNextPrayerForTime = (
 	times: PrayerTimes,
 	now = new Date(),
-): { currentPrayer: string; nextPrayer: string } => {
-	const currentTime = now.getHours() * 60 + now.getMinutes()
-
-	const prayerSchedule = [
-		{ name: "Subuh", time: times.fajr },
-		{ name: "Syuruq", time: times.sunrise },
-		{ name: "Dzuhur", time: times.dhuhr },
-		{ name: "Ashar", time: times.asr },
-		{ name: "Maghrib", time: times.maghrib },
-		{ name: "Isya", time: times.isha },
-	]
-
-	const prayerMinutes = prayerSchedule.map((prayer) => {
-		const [hours, minutes] = prayer.time.split(":").map(Number)
-		return {
-			name: prayer.name,
-			minutes: hours * 60 + minutes,
-		}
-	})
-
-	for (let i = 0; i < prayerMinutes.length - 1; i++) {
-		const prayer = prayerMinutes[i]
-		const nextPrayer = prayerMinutes[i + 1]
-
-		if (currentTime >= prayer.minutes && currentTime < nextPrayer.minutes) {
-			return { currentPrayer: prayer.name, nextPrayer: nextPrayer.name }
-		}
-	}
-
-	return { currentPrayer: "Isya", nextPrayer: "Subuh" }
-}
-
-export const defaultVerses: Verse[] = [
-	{
-		id: "1",
-		arabic: "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَارْكَعُوا مَعَ الرَّاكِعِينَ",
-		translation:
-			"Dan dirikanlah shalat, tunaikanlah zakat dan ruku'lah beserta orang-orang yang ruku'.",
-		reference: "Al-Baqarah 2:43",
-	},
-	{
-		id: "2",
-		arabic: "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ",
-		translation:
-			"Hai orang-orang yang beriman, jadikanlah sabar dan shalat sebagai penolongmu.",
-		reference: "Al-Baqarah 2:153",
-	},
-	{
-		id: "3",
-		arabic: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا لِيَعْبُدُونِ",
-		translation:
-			"Dan Aku tidak menciptakan jin dan manusia melainkan supaya mereka menyembah-Ku.",
-		reference: "Adh-Dhariyat 51:56",
-	},
-	{
-		id: "4",
-		arabic: "وَبَشِّرِ الصَّابِرِينَ",
-		translation: "Dan berikanlah berita gembira kepada orang-orang yang sabar.",
-		reference: "Al-Baqarah 2:155",
-	},
-	{
-		id: "5",
-		arabic: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-		translation: "Sesungguhnya sesudah kesulitan itu ada kemudahan.",
-		reference: "Ash-Sharh 94:6",
-	},
-]
+	timeZone = defaultPrayerSettings.timezonestring,
+) => calculateCurrentAndNextPrayer(times, now, timeZone)
 
 export const PrayerProvider: React.FC<{ children: ReactNode }> = ({
 	children,
 }) => {
-	const [mosqueInfo, setMosqueInfo] = useState<MosqueInfo>(defaultMosqueInfo)
-	const [prayerTimes, setPrayerTimes] =
-		useState<PrayerTimes>(defaultPrayerTimes)
-	const prayerTimesRef = useRef<PrayerTimes>(defaultPrayerTimes)
-	const [announcements, setAnnouncements] =
-		useState<string[]>(defaultAnnouncements)
-	const [events, setEvents] = useState<Event[]>(defaultEvents)
-	const [verses, setVerses] = useState<Verse[]>(defaultVerses)
-	const [prayerSettings, setPrayerSettings] = useState<PrayerSettings>(
-		defaultPrayerSettings,
+	const storageRef = useRef(getBrowserStorage())
+	const hydratedRef = useRef<ReturnType<typeof hydratePrayerStorage> | null>(
+		null,
 	)
-	const [iqamahIntervals, setIqamahIntervals] = useState<IqamahIntervals>(
-		defaultIqamahIntervals,
+	if (!hydratedRef.current) {
+		hydratedRef.current = hydratePrayerStorage(storageRef.current)
+	}
+	const hydrated = hydratedRef.current
+	const initialSnapshot = hydrated.prayerTimesSnapshot
+	const [mosqueInfo, setMosqueInfo] = useState(hydrated.mosqueInfo)
+	const [prayerTimes, setPrayerTimes] = useState(
+		initialSnapshot?.times ?? defaultPrayerTimes,
+	)
+	const prayerTimesRef = useRef(initialSnapshot?.times ?? defaultPrayerTimes)
+	const hasSuccessfulTimesRef = useRef(initialSnapshot !== null)
+	const requestVersionRef = useRef(0)
+	const [prayerTimesStatus, setPrayerTimesStatus] =
+		useState<PrayerTimesStatus>("loading")
+	const [prayerTimesError, setPrayerTimesError] = useState<string | null>(null)
+	const [prayerTimesUpdatedAt, setPrayerTimesUpdatedAt] = useState<
+		string | null
+	>(initialSnapshot?.updatedAt ?? null)
+	const [announcements, setAnnouncements] = useState(hydrated.announcements)
+	const [events, setEvents] = useState(hydrated.events)
+	const [verses, setVerses] = useState(hydrated.verses)
+	const [prayerSettings, setPrayerSettings] = useState(hydrated.prayerSettings)
+	const [iqamahIntervals, setIqamahIntervals] = useState(
+		hydrated.iqamahIntervals,
 	)
 	const [currentPrayer, setCurrentPrayer] = useState<string | null>(null)
 	const [nextPrayer, setNextPrayer] = useState<string | null>(null)
 
-	const getCurrentAndNextPrayer = useCallback((times: PrayerTimes) => {
-		const { currentPrayer, nextPrayer } = getCurrentAndNextPrayerForTime(times)
-
-		setCurrentPrayer(currentPrayer)
-		setNextPrayer(nextPrayer)
-	}, [])
+	const updateCurrentAndNextPrayer = useCallback(
+		(times: PrayerTimes) => {
+			const current = calculateCurrentAndNextPrayer(
+				times,
+				new Date(),
+				prayerSettings.timezonestring,
+			)
+			setCurrentPrayer(current.currentPrayer)
+			setNextPrayer(current.nextPrayer)
+		},
+		[prayerSettings.timezonestring],
+	)
 
 	useEffect(() => {
-		const fetchPrayerTimes = async () => {
+		let disposed = false
+		let activeRequest: AbortController | undefined
+		let midnightTimeout: ReturnType<typeof setTimeout> | undefined
+
+		const refreshPrayerTimes = async () => {
+			activeRequest?.abort()
+			activeRequest = new AbortController()
+			const requestVersion = ++requestVersionRef.current
+			setPrayerTimesStatus("loading")
+			setPrayerTimesError(null)
+
 			try {
 				const times = await getPrayerTimes(
 					mosqueInfo.latitude,
 					mosqueInfo.longitude,
 					prayerSettings,
+					{ signal: activeRequest.signal },
 				)
+				if (disposed || requestVersion !== requestVersionRef.current) return
+
+				const updatedAt = new Date().toISOString()
 				setPrayerTimes(times)
 				prayerTimesRef.current = times
-				getCurrentAndNextPrayer(times)
+				hasSuccessfulTimesRef.current = true
+				setPrayerTimesUpdatedAt(updatedAt)
+				setPrayerTimesStatus("fresh")
+				persistPrayerStorageValue(storageRef.current, "prayerTimesSnapshot", {
+					times,
+					updatedAt,
+				})
+				updateCurrentAndNextPrayer(times)
 			} catch (error) {
-				console.error("Failed to fetch prayer times:", error)
-				getCurrentAndNextPrayer(prayerTimesRef.current)
+				if (
+					disposed ||
+					requestVersion !== requestVersionRef.current ||
+					(error instanceof DOMException && error.name === "AbortError")
+				) {
+					return
+				}
+				setPrayerTimesStatus(hasSuccessfulTimesRef.current ? "stale" : "error")
+				setPrayerTimesError("Jadwal salat tidak dapat diperbarui")
+				updateCurrentAndNextPrayer(prayerTimesRef.current)
 			}
 		}
 
-		void fetchPrayerTimes()
-
-		// Update prayer times daily at midnight
-		const now = new Date()
-		const tomorrow = new Date(now)
-		tomorrow.setDate(tomorrow.getDate() + 1)
-		tomorrow.setHours(0, 0, 0, 0)
-
-		const msUntilMidnight = tomorrow.getTime() - now.getTime()
-
-		let dailyUpdateInterval: ReturnType<typeof setInterval> | undefined
-
-		const timeoutId = setTimeout(() => {
-			void fetchPrayerTimes()
-
-			// Set up daily interval
-			dailyUpdateInterval = setInterval(
+		const scheduleMidnightRefresh = () => {
+			midnightTimeout = setTimeout(
 				() => {
-					void fetchPrayerTimes()
+					void refreshPrayerTimes()
+					if (!disposed) scheduleMidnightRefresh()
 				},
-				24 * 60 * 60 * 1000,
+				millisecondsUntilNextZonedMidnight(
+					new Date(),
+					prayerSettings.timezonestring,
+				),
 			)
-		}, msUntilMidnight)
+		}
 
-		// Update current/next prayer every minute
-		const prayerUpdateInterval = setInterval(() => {
-			getCurrentAndNextPrayer(prayerTimesRef.current)
-		}, 60000)
+		updateCurrentAndNextPrayer(prayerTimesRef.current)
+		void refreshPrayerTimes()
+		scheduleMidnightRefresh()
+		const prayerUpdateInterval = setInterval(
+			() => updateCurrentAndNextPrayer(prayerTimesRef.current),
+			60_000,
+		)
 
 		return () => {
-			clearTimeout(timeoutId)
-			if (dailyUpdateInterval) {
-				clearInterval(dailyUpdateInterval)
-			}
+			disposed = true
+			requestVersionRef.current += 1
+			activeRequest?.abort()
+			if (midnightTimeout) clearTimeout(midnightTimeout)
 			clearInterval(prayerUpdateInterval)
 		}
 	}, [
 		mosqueInfo.latitude,
 		mosqueInfo.longitude,
 		prayerSettings,
-		getCurrentAndNextPrayer,
+		updateCurrentAndNextPrayer,
 	])
 
 	const updateMosqueInfo = (info: MosqueInfo) => {
-		setMosqueInfo(info)
-		localStorage.setItem("mosqueInfo", JSON.stringify(info))
+		const normalized = normalizeMosqueInfo(info)
+		setMosqueInfo(normalized)
+		persistPrayerStorageValue(storageRef.current, "mosqueInfo", normalized)
 	}
-
-	const updateAnnouncements = (newAnnouncements: string[]) => {
-		setAnnouncements(newAnnouncements)
-		localStorage.setItem("announcements", JSON.stringify(newAnnouncements))
+	const updateAnnouncements = (value: string[]) => {
+		const normalized = normalizeAnnouncements(value)
+		setAnnouncements(normalized)
+		persistPrayerStorageValue(storageRef.current, "announcements", normalized)
 	}
-
-	const updateEvents = (newEvents: Event[]) => {
-		setEvents(newEvents)
-		localStorage.setItem("events", JSON.stringify(newEvents))
+	const updateEvents = (value: Event[]) => {
+		const normalized = normalizeEvents(value)
+		setEvents(normalized)
+		persistPrayerStorageValue(storageRef.current, "events", normalized)
 	}
-
-	const updateVerses = (newVerses: Verse[]) => {
-		setVerses(newVerses)
-		localStorage.setItem("verses", JSON.stringify(newVerses))
+	const updateVerses = (value: Verse[]) => {
+		const normalized = normalizeVerses(value)
+		setVerses(normalized)
+		persistPrayerStorageValue(storageRef.current, "verses", normalized)
 	}
-
-	const updatePrayerSettings = (newSettings: PrayerSettings) => {
-		setPrayerSettings(newSettings)
-		localStorage.setItem("prayerSettings", JSON.stringify(newSettings))
+	const updatePrayerSettings = (value: PrayerSettings) => {
+		const normalized = normalizePrayerSettings(value)
+		setPrayerSettings(normalized)
+		persistPrayerStorageValue(storageRef.current, "prayerSettings", normalized)
 	}
-
-	const updateIqamahIntervals = (newIntervals: IqamahIntervals) => {
-		setIqamahIntervals(newIntervals)
-		localStorage.setItem("iqamahIntervals", JSON.stringify(newIntervals))
+	const updateIqamahIntervals = (value: IqamahIntervals) => {
+		const normalized = normalizeIqamahIntervals(value)
+		setIqamahIntervals(normalized)
+		persistPrayerStorageValue(storageRef.current, "iqamahIntervals", normalized)
 	}
-
-	// Load saved data from localStorage
-	useEffect(() => {
-		const savedMosqueInfo = localStorage.getItem("mosqueInfo")
-		const savedAnnouncements = localStorage.getItem("announcements")
-		const savedEvents = localStorage.getItem("events")
-		const savedVerses = localStorage.getItem("verses")
-		const savedPrayerSettings = localStorage.getItem("prayerSettings")
-		const savedIqamahIntervals = localStorage.getItem("iqamahIntervals")
-
-		if (savedMosqueInfo) {
-			setMosqueInfo(JSON.parse(savedMosqueInfo))
-		}
-
-		if (savedAnnouncements) {
-			setAnnouncements(JSON.parse(savedAnnouncements))
-		}
-
-		if (savedEvents) {
-			setEvents(JSON.parse(savedEvents))
-		}
-
-		if (savedVerses) {
-			setVerses(JSON.parse(savedVerses))
-		}
-
-		if (savedPrayerSettings) {
-			setPrayerSettings(JSON.parse(savedPrayerSettings))
-		}
-
-		if (savedIqamahIntervals) {
-			setIqamahIntervals(JSON.parse(savedIqamahIntervals))
-		}
-	}, [])
 
 	const value: PrayerContextType = {
 		mosqueInfo,
 		prayerTimes,
+		prayerTimesStatus,
+		prayerTimesError,
+		prayerTimesUpdatedAt,
 		announcements,
 		events,
 		verses,
@@ -373,3 +277,5 @@ export const usePrayerContext = () => {
 	}
 	return context
 }
+
+export const useOptionalPrayerContext = () => useContext(PrayerContext)

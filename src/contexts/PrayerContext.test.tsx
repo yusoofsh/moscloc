@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react"
+import { delay, HttpResponse, http } from "msw"
 import type { ReactNode } from "react"
 import { beforeEach, describe, expect, it } from "vitest"
+import { server } from "~/__tests__/mocks/server"
 import {
 	defaultPrayerTimes,
 	getCurrentAndNextPrayerForTime,
@@ -212,6 +214,132 @@ describe("PrayerContext", () => {
 		await waitFor(() => {
 			expect(result.current.iqamahIntervals).toEqual(savedIntervals)
 		})
+	})
+
+	it("hydrates valid keys even when another stored key is malformed", () => {
+		localStorage.setItem("mosqueInfo", "{broken-json")
+		localStorage.setItem("announcements", JSON.stringify(["Tetap aman"]))
+
+		const { result } = renderHook(() => usePrayerContext(), { wrapper })
+
+		expect(result.current.mosqueInfo.name).toBe("Masjid Darul Arqom")
+		expect(result.current.announcements).toEqual(["Tetap aman"])
+	})
+
+	it("hydrates settings before the first prayer request starts", async () => {
+		let requestedMethod = ""
+		let requestedTimeZone = ""
+		localStorage.setItem(
+			"prayerSettings",
+			JSON.stringify({ method: 5, timezone: "Pacific/Auckland" }),
+		)
+		server.use(
+			http.get("https://api.aladhan.com/v1/timings/*", ({ request }) => {
+				const url = new URL(request.url)
+				requestedMethod = url.searchParams.get("method") ?? ""
+				requestedTimeZone = url.searchParams.get("timezonestring") ?? ""
+				return HttpResponse.json({
+					data: {
+						timings: {
+							Fajr: "04:26",
+							Sunrise: "05:50",
+							Dhuhr: "12:03",
+							Asr: "15:03",
+							Maghrib: "17:58",
+							Isha: "18:59",
+						},
+					},
+				})
+			}),
+		)
+
+		renderHook(() => usePrayerContext(), { wrapper })
+
+		await waitFor(() => expect(requestedMethod).toBe("5"))
+		expect(requestedTimeZone).toBe("Pacific/Auckland")
+	})
+
+	it("exposes an error state when defaults are shown without a successful fetch", async () => {
+		server.use(
+			http.get(
+				"https://api.aladhan.com/v1/timings/*",
+				() => new HttpResponse(null, { status: 503 }),
+			),
+		)
+		const { result } = renderHook(() => usePrayerContext(), { wrapper })
+
+		await waitFor(() => expect(result.current.prayerTimesStatus).toBe("error"))
+		expect(result.current.prayerTimesError).toBe(
+			"Jadwal salat tidak dapat diperbarui",
+		)
+	})
+
+	it("retains the last successful times and marks them stale after refresh failure", async () => {
+		const { result } = renderHook(() => usePrayerContext(), { wrapper })
+		await waitFor(() => expect(result.current.prayerTimesStatus).toBe("fresh"))
+		const successfulTimes = result.current.prayerTimes
+		server.use(
+			http.get(
+				"https://api.aladhan.com/v1/timings/*",
+				() => new HttpResponse(null, { status: 503 }),
+			),
+		)
+
+		act(() => {
+			result.current.updatePrayerSettings({
+				...result.current.prayerSettings,
+				method: 5,
+			})
+		})
+
+		await waitFor(() => expect(result.current.prayerTimesStatus).toBe("stale"))
+		expect(result.current.prayerTimes).toEqual(successfulTimes)
+	})
+
+	it("prevents an older request from overwriting newer prayer settings", async () => {
+		let slowRequestStarted = false
+		server.use(
+			http.get("https://api.aladhan.com/v1/timings/*", async ({ request }) => {
+				const method = new URL(request.url).searchParams.get("method")
+				if (method === "5") {
+					slowRequestStarted = true
+					await delay(150)
+				}
+				const fajr = method === "3" ? "03:03" : "05:05"
+				return HttpResponse.json({
+					data: {
+						timings: {
+							Fajr: fajr,
+							Sunrise: "06:00",
+							Dhuhr: "12:00",
+							Asr: "15:00",
+							Maghrib: "18:00",
+							Isha: "19:00",
+						},
+					},
+				})
+			}),
+		)
+		const { result } = renderHook(() => usePrayerContext(), { wrapper })
+		await waitFor(() => expect(result.current.prayerTimesStatus).toBe("fresh"))
+
+		act(() => {
+			result.current.updatePrayerSettings({
+				...result.current.prayerSettings,
+				method: 5,
+			})
+		})
+		await waitFor(() => expect(slowRequestStarted).toBe(true))
+		act(() => {
+			result.current.updatePrayerSettings({
+				...result.current.prayerSettings,
+				method: 3,
+			})
+		})
+
+		await waitFor(() => expect(result.current.prayerTimes.fajr).toBe("03:03"))
+		await delay(200)
+		expect(result.current.prayerTimes.fajr).toBe("03:03")
 	})
 
 	it("calculates current and next prayer at deterministic boundaries", () => {

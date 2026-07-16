@@ -1,9 +1,21 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useOptionalPrayerContext } from "../contexts/PrayerContext"
+import { defaultPrayerSettings } from "../lib/prayerDomain"
+import {
+	formatApiDate,
+	millisecondsUntilNextZonedMidnight,
+} from "../lib/zonedTime"
 
 interface IslamicDate {
 	islamicDate: number
 	islamicMonth: string
 	islamicYear: number
+}
+
+const defaultIslamicDate: IslamicDate = {
+	islamicDate: 1,
+	islamicMonth: "Muharram",
+	islamicYear: 1445,
 }
 
 const islamicMonths = [
@@ -21,66 +33,78 @@ const islamicMonths = [
 	"Dzulhijjah",
 ]
 
-export const useIslamicDate = (): IslamicDate => {
-	const [islamicDate, setIslamicDate] = useState<IslamicDate>({
-		islamicDate: 1,
-		islamicMonth: "Muharram",
-		islamicYear: 1445,
-	})
+export const useIslamicDate = (timeZone?: string): IslamicDate => {
+	const prayerContext = useOptionalPrayerContext()
+	const configuredTimeZone =
+		timeZone ??
+		prayerContext?.prayerSettings.timezonestring ??
+		defaultPrayerSettings.timezonestring
+	const [islamicDate, setIslamicDate] =
+		useState<IslamicDate>(defaultIslamicDate)
+	const requestVersionRef = useRef(0)
 
 	useEffect(() => {
+		let disposed = false
+		let activeRequest: AbortController | undefined
+		let midnightTimeout: ReturnType<typeof setTimeout> | undefined
+
 		const fetchIslamicDate = async () => {
+			activeRequest?.abort()
+			activeRequest = new AbortController()
+			const requestVersion = ++requestVersionRef.current
 			try {
-				const today = new Date()
+				const date = formatApiDate(new Date(), configuredTimeZone)
 				const response = await fetch(
-					`https://api.aladhan.com/v1/gToH/${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`,
+					`https://api.aladhan.com/v1/gToH/${date}`,
+					{ signal: activeRequest.signal },
 				)
-
-				if (response.ok) {
-					const data = await response.json()
-					const hijriDate = data.data.hijri
-
-					setIslamicDate({
-						islamicDate: Number.parseInt(hijriDate.day, 10),
-						islamicMonth:
-							islamicMonths[Number.parseInt(hijriDate.month.number, 10) - 1],
-						islamicYear: Number.parseInt(hijriDate.year, 10),
-					})
+				if (!response.ok) return
+				const data = await response.json()
+				const hijriDate = data?.data?.hijri
+				const day = Number.parseInt(hijriDate?.day, 10)
+				const month = Number.parseInt(hijriDate?.month?.number, 10)
+				const year = Number.parseInt(hijriDate?.year, 10)
+				if (
+					disposed ||
+					requestVersion !== requestVersionRef.current ||
+					!Number.isInteger(day) ||
+					month < 1 ||
+					month > 12 ||
+					!Number.isInteger(year)
+				) {
+					return
 				}
+				setIslamicDate({
+					islamicDate: day,
+					islamicMonth: islamicMonths[month - 1],
+					islamicYear: year,
+				})
 			} catch (error) {
-				console.error("Failed to fetch Islamic date:", error)
+				if (!(error instanceof DOMException && error.name === "AbortError")) {
+					// Keep the last successfully rendered date when the network is unavailable.
+				}
 			}
+		}
+
+		const scheduleMidnightRefresh = () => {
+			midnightTimeout = setTimeout(
+				() => {
+					void fetchIslamicDate()
+					if (!disposed) scheduleMidnightRefresh()
+				},
+				millisecondsUntilNextZonedMidnight(new Date(), configuredTimeZone),
+			)
 		}
 
 		void fetchIslamicDate()
-
-		// Update daily at midnight
-		const now = new Date()
-		const tomorrow = new Date(now)
-		tomorrow.setDate(tomorrow.getDate() + 1)
-		tomorrow.setHours(0, 0, 0, 0)
-
-		const msUntilMidnight = tomorrow.getTime() - now.getTime()
-
-		let dailyUpdateInterval: ReturnType<typeof setInterval> | undefined
-
-		const timeoutId = setTimeout(() => {
-			void fetchIslamicDate()
-			dailyUpdateInterval = setInterval(
-				() => {
-					void fetchIslamicDate()
-				},
-				24 * 60 * 60 * 1000,
-			)
-		}, msUntilMidnight)
-
+		scheduleMidnightRefresh()
 		return () => {
-			clearTimeout(timeoutId)
-			if (dailyUpdateInterval) {
-				clearInterval(dailyUpdateInterval)
-			}
+			disposed = true
+			requestVersionRef.current += 1
+			activeRequest?.abort()
+			if (midnightTimeout) clearTimeout(midnightTimeout)
 		}
-	}, [])
+	}, [configuredTimeZone])
 
 	return islamicDate
 }

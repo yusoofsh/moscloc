@@ -2,6 +2,7 @@ import { Moon, Sun, Sunrise, Sunset } from "lucide-react"
 import type React from "react"
 import { useEffect, useState } from "react"
 import { usePrayerContext } from "../contexts/PrayerContext"
+import { getPrayerCountdownSeconds } from "../lib/zonedTime"
 
 interface PrayerTime {
 	name: string
@@ -10,17 +11,14 @@ interface PrayerTime {
 }
 
 const PrayerTimes: React.FC = () => {
-	const { prayerTimes, currentPrayer, nextPrayer } = usePrayerContext()
-	const [_currentTime, setCurrentTime] = useState(new Date())
+	const {
+		prayerTimes,
+		prayerTimesStatus,
+		currentPrayer,
+		nextPrayer,
+		prayerSettings,
+	} = usePrayerContext()
 	const [timeLeft, setTimeLeft] = useState("")
-
-	useEffect(() => {
-		const timer = setInterval(() => {
-			setCurrentTime(new Date())
-		}, 1000)
-
-		return () => clearInterval(timer)
-	}, [])
 
 	useEffect(() => {
 		const calculateTimeLeft = () => {
@@ -39,21 +37,14 @@ const PrayerTimes: React.FC = () => {
 			const nextPrayerTime = prayerTimeMap[nextPrayer.toLowerCase()]
 			if (!nextPrayerTime) return ""
 
-			const [hours, minutes] = nextPrayerTime.split(":").map(Number)
-			const nextPrayerDate = new Date()
-			nextPrayerDate.setHours(hours, minutes, 0, 0)
-
-			// If prayer time has passed today, set it for tomorrow
-			if (nextPrayerDate <= now) {
-				nextPrayerDate.setDate(nextPrayerDate.getDate() + 1)
-			}
-
-			const timeDiff = nextPrayerDate.getTime() - now.getTime()
-			const hoursLeft = Math.floor(timeDiff / (1000 * 60 * 60))
-			const minutesLeft = Math.floor(
-				(timeDiff % (1000 * 60 * 60)) / (1000 * 60),
+			const timeDiff = getPrayerCountdownSeconds(
+				nextPrayerTime,
+				now,
+				prayerSettings.timezonestring,
 			)
-			const secondsLeft = Math.floor((timeDiff % (1000 * 60)) / 1000)
+			const hoursLeft = Math.floor(timeDiff / (60 * 60))
+			const minutesLeft = Math.floor((timeDiff % (60 * 60)) / 60)
+			const secondsLeft = timeDiff % 60
 
 			return `${hoursLeft.toString().padStart(2, "0")}:${minutesLeft.toString().padStart(2, "0")}:${secondsLeft.toString().padStart(2, "0")}`
 		}
@@ -66,7 +57,7 @@ const PrayerTimes: React.FC = () => {
 		}, 1000)
 
 		return () => clearInterval(timer)
-	}, [nextPrayer, prayerTimes])
+	}, [nextPrayer, prayerTimes, prayerSettings.timezonestring])
 
 	const prayers: PrayerTime[] = [
 		{
@@ -118,6 +109,19 @@ const PrayerTimes: React.FC = () => {
 			className="rounded-3xl border border-white/20 bg-white/15 p-4 backdrop-blur-md lg:p-6"
 			data-testid="prayer-times"
 		>
+			{prayerTimesStatus !== "fresh" && (
+				<p
+					className="mb-4 rounded-lg bg-black/30 px-4 py-2 text-center text-sm text-white"
+					role={prayerTimesStatus === "error" ? "alert" : "status"}
+					aria-live="polite"
+				>
+					{prayerTimesStatus === "stale"
+						? "Jadwal salat terakhir ditampilkan karena pembaruan gagal."
+						: prayerTimesStatus === "error"
+							? "Jadwal salat belum dapat diperbarui; waktu bawaan ditampilkan."
+							: "Memperbarui jadwal salat…"}
+				</p>
+			)}
 			<div className="grid grid-cols-2 gap-6 lg:grid-cols-6">
 				{prayers.map((prayer) => (
 					<div

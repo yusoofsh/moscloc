@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
+import { HttpResponse, http } from "msw"
 import { page } from "vitest/browser"
 import { render } from "vitest-browser-react"
+import { worker } from "~/__tests__/mocks/browser"
 import { PrayerProvider } from "~/contexts/PrayerContext"
 import PrayerTimes from "./PrayerTimes"
 
@@ -52,5 +54,24 @@ describe("PrayerTimes", () => {
 		// Should have SVG icons for each prayer
 		const container = page.getByTestId("prayer-times")
 		await expect.element(container).toBeVisible()
+	})
+
+	it("announces when fallback times are shown after a refresh error", async () => {
+		worker.use(
+			http.get(
+				"https://api.aladhan.com/v1/timings/*",
+				() => new HttpResponse(null, { status: 503 }),
+			),
+		)
+		await render(
+			<PrayerProvider>
+				<PrayerTimes />
+			</PrayerProvider>,
+		)
+
+		await expect.element(page.getByRole("alert")).toBeVisible()
+		await expect
+			.element(page.getByText(/waktu bawaan ditampilkan/i))
+			.toBeVisible()
 	})
 })

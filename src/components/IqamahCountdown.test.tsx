@@ -4,10 +4,15 @@ import { render } from "vitest-browser-react"
 import { PrayerProvider } from "~/contexts/PrayerContext"
 import IqamahCountdown from "./IqamahCountdown"
 
+vi.mock("@tanstack/react-router", () => ({
+	Navigate: () => null,
+}))
+
 describe("IqamahCountdown", () => {
 	beforeEach(() => {
+		localStorage.clear()
 		vi.useFakeTimers()
-		vi.setSystemTime(new Date("2024-01-15T12:05:00"))
+		vi.setSystemTime(new Date("2024-01-15T05:05:00.000Z"))
 	})
 
 	afterEach(() => {

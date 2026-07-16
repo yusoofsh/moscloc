@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest"
+import { defaultIqamahIntervals, defaultPrayerTimes } from "./prayerDomain"
 import {
-	defaultIqamahIntervals,
-	defaultPrayerTimes,
-} from "~/contexts/PrayerContext"
-import { getIqamahCountdownState, getIqamahRedirectState } from "./iqamahLogic"
+	getIqamahCountdownState,
+	getIqamahRedirectState,
+	getNextIqamahRedirectEvent,
+} from "./iqamahLogic"
 
 describe("iqamahLogic", () => {
 	it("returns inactive before a prayer window starts", () => {
@@ -108,6 +109,59 @@ describe("iqamahLogic", () => {
 			countdownSeconds: 4,
 			prayerKey: "dhuhr",
 			prayerName: "Dzuhur",
+			deadlineEpochMs: new Date("2024-01-15T12:13:00").getTime(),
+		})
+	})
+
+	it("uses configured timezone wall time instead of the device timezone", () => {
+		expect(
+			getIqamahCountdownState({
+				prayerTimes: defaultPrayerTimes,
+				iqamahIntervals: defaultIqamahIntervals,
+				now: new Date("2024-01-15T05:05:00.000Z"),
+				timeZone: "Asia/Jakarta",
+			}),
+		).toMatchObject({
+			status: "countdown",
+			prayerKey: "dhuhr",
+			timeLeftSeconds: 480,
+		})
+	})
+
+	it("does not show a named-prayer countdown before its adhan", () => {
+		expect(
+			getIqamahCountdownState({
+				prayerTimes: defaultPrayerTimes,
+				iqamahIntervals: defaultIqamahIntervals,
+				prayerName: "dhuhr",
+				now: new Date("2024-01-15T11:00:00"),
+			}),
+		).toEqual({ status: "inactive" })
+	})
+
+	it("wraps an iqamah time that crosses midnight", () => {
+		expect(
+			getIqamahCountdownState({
+				prayerTimes: { ...defaultPrayerTimes, isha: "23:58" },
+				iqamahIntervals: { ...defaultIqamahIntervals, isha: 5 },
+				prayerName: "isha",
+				now: new Date("2024-01-15T23:59:00"),
+			}),
+		).toMatchObject({ status: "countdown", iqamahTime: "00:03" })
+	})
+
+	it("returns one absolute next redirect event for timer scheduling", () => {
+		expect(
+			getNextIqamahRedirectEvent({
+				prayerTimes: defaultPrayerTimes,
+				iqamahIntervals: defaultIqamahIntervals,
+				redirectDelaySeconds: 5,
+				now: new Date("2024-01-15T12:00:00"),
+			}),
+		).toMatchObject({
+			prayerKey: "dhuhr",
+			promptStartsAtEpochMs: new Date("2024-01-15T12:12:55").getTime(),
+			deadlineEpochMs: new Date("2024-01-15T12:13:00").getTime(),
 		})
 	})
 })

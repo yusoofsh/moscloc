@@ -15,7 +15,8 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 	prayerName,
 	onComplete,
 }) => {
-	const { prayerTimes, iqamahIntervals, mosqueInfo } = usePrayerContext()
+	const { prayerTimes, iqamahIntervals, mosqueInfo, prayerSettings } =
+		usePrayerContext()
 	const [iqamahState, setIqamahState] = useState<IqamahCountdownState>({
 		status: "inactive",
 	})
@@ -29,6 +30,7 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 				prayerTimes,
 				iqamahIntervals,
 				prayerName,
+				timeZone: prayerSettings.timezonestring,
 			})
 
 			setIqamahState(state)
@@ -44,7 +46,13 @@ const IqamahCountdown: React.FC<IqamahCountdownProps> = ({
 		const interval = setInterval(calculateTimeLeft, 1000)
 
 		return () => clearInterval(interval)
-	}, [prayerTimes, iqamahIntervals, prayerName, onComplete])
+	}, [
+		prayerTimes,
+		iqamahIntervals,
+		prayerName,
+		onComplete,
+		prayerSettings.timezonestring,
+	])
 
 	const formatTime = (seconds: number) => {
 		const mins = Math.floor(seconds / 60)

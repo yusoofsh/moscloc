@@ -1,9 +1,14 @@
-import { format } from "date-fns"
-import { id } from "date-fns/locale"
 import type React from "react"
 import { useEffect, useState } from "react"
+import { useOptionalPrayerContext } from "../contexts/PrayerContext"
+import { defaultPrayerSettings } from "../lib/prayerDomain"
+import { formatZonedClock, formatZonedLongDate } from "../lib/zonedTime"
 
 const CurrentTime: React.FC = () => {
+	const prayerContext = useOptionalPrayerContext()
+	const timeZone =
+		prayerContext?.prayerSettings.timezonestring ??
+		defaultPrayerSettings.timezonestring
 	const [currentTime, setCurrentTime] = useState(new Date())
 
 	useEffect(() => {
@@ -17,10 +22,10 @@ const CurrentTime: React.FC = () => {
 	return (
 		<div className="text-right" data-testid="current-time">
 			<div className="mb-3 font-bold font-mono text-4xl text-white lg:text-5xl xl:text-6xl 2xl:text-7xl">
-				{format(currentTime, "HH:mm")}
+				{formatZonedClock(currentTime, timeZone)}
 			</div>
 			<div className="font-bold text-white text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl">
-				{format(currentTime, "EEEE, dd MMMM yyyy", { locale: id })}
+				{formatZonedLongDate(currentTime, timeZone)}
 			</div>
 		</div>
 	)

@@ -1,65 +1,101 @@
 import { useNavigate } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "~/components/ui/button"
 import { usePrayerContext } from "../contexts/PrayerContext"
-import { getIqamahRedirectState } from "../lib/iqamahLogic"
+import {
+	getNextIqamahRedirectEvent,
+	type IqamahRedirectEvent,
+} from "../lib/iqamahLogic"
 
 interface IqamahRedirectProps {
 	autoRedirect?: boolean
 	redirectDelaySeconds?: number
 }
 
+interface VisiblePrompt {
+	event: IqamahRedirectEvent
+	countdownSeconds: number
+}
+
 const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 	autoRedirect = true,
 	redirectDelaySeconds = 5,
 }) => {
-	const { prayerTimes, iqamahIntervals } = usePrayerContext()
+	const { prayerTimes, iqamahIntervals, prayerSettings } = usePrayerContext()
 	const navigate = useNavigate()
-	const [showRedirectCountdown, setShowRedirectCountdown] = useState(false)
-	const [countdownSeconds, setCountdownSeconds] = useState(redirectDelaySeconds)
+	const [prompt, setPrompt] = useState<VisiblePrompt | null>(null)
+	const dismissedEventIdRef = useRef<string | null>(null)
 
 	useEffect(() => {
-		if (!autoRedirect) return
+		if (!autoRedirect) {
+			setPrompt(null)
+			return
+		}
 
-		const checkForIqamahTime = () => {
-			const state = getIqamahRedirectState({
-				prayerTimes,
-				iqamahIntervals,
-				redirectDelaySeconds,
-			})
+		let disposed = false
+		let timer: ReturnType<typeof setTimeout> | undefined
 
-			if (state.status === "prompt") {
-				setShowRedirectCountdown(true)
-				setCountdownSeconds(Math.ceil(state.countdownSeconds))
+		const schedule = (activeEvent?: IqamahRedirectEvent) => {
+			if (disposed) return
+			const nowEpochMs = Date.now()
+			const event =
+				activeEvent ??
+				getNextIqamahRedirectEvent({
+					prayerTimes,
+					iqamahIntervals,
+					redirectDelaySeconds,
+					timeZone: prayerSettings.timezonestring,
+					now: new Date(nowEpochMs),
+				})
+
+			if (dismissedEventIdRef.current === event.id) {
+				setPrompt(null)
+				const delay = Math.max(1, event.deadlineEpochMs - nowEpochMs + 1)
+				timer = setTimeout(() => schedule(), delay)
 				return
 			}
 
-			setShowRedirectCountdown(false)
+			if (nowEpochMs < event.promptStartsAtEpochMs) {
+				setPrompt(null)
+				timer = setTimeout(
+					() => schedule(event),
+					Math.max(1, event.promptStartsAtEpochMs - nowEpochMs),
+				)
+				return
+			}
+
+			if (nowEpochMs >= event.deadlineEpochMs) {
+				void navigate({ to: "/iqamah" })
+				return
+			}
+
+			setPrompt({
+				event,
+				countdownSeconds: Math.ceil(
+					(event.deadlineEpochMs - nowEpochMs) / 1000,
+				),
+			})
+			timer = setTimeout(
+				() => schedule(event),
+				Math.min(1000, Math.max(1, event.deadlineEpochMs - nowEpochMs)),
+			)
 		}
 
-		checkForIqamahTime()
-		const interval = setInterval(checkForIqamahTime, 1000)
+		schedule()
+		return () => {
+			disposed = true
+			if (timer) clearTimeout(timer)
+		}
+	}, [
+		prayerTimes,
+		iqamahIntervals,
+		prayerSettings.timezonestring,
+		autoRedirect,
+		redirectDelaySeconds,
+		navigate,
+	])
 
-		return () => clearInterval(interval)
-	}, [prayerTimes, iqamahIntervals, autoRedirect, redirectDelaySeconds])
-
-	useEffect(() => {
-		if (!showRedirectCountdown) return
-
-		const countdownInterval = setInterval(() => {
-			setCountdownSeconds((prev) => {
-				if (prev <= 1) {
-					void navigate({ to: "/iqamah" })
-					return 0
-				}
-				return prev - 1
-			})
-		}, 1000)
-
-		return () => clearInterval(countdownInterval)
-	}, [showRedirectCountdown, navigate])
-
-	if (!showRedirectCountdown) return null
+	if (!prompt) return null
 
 	return (
 		<div
@@ -72,7 +108,7 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 				</h2>
 				<p className="mb-6 text-gray-600">Iqamah dalam:</p>
 				<div className="mb-6 font-bold text-6xl text-emerald-600">
-					{countdownSeconds}
+					{prompt.countdownSeconds}
 				</div>
 				<Button type="button" onClick={() => navigate({ to: "/iqamah" })}>
 					Pergi Sekarang
@@ -80,7 +116,10 @@ const IqamahRedirect: React.FC<IqamahRedirectProps> = ({
 				<Button
 					type="button"
 					variant="secondary"
-					onClick={() => setShowRedirectCountdown(false)}
+					onClick={() => {
+						dismissedEventIdRef.current = prompt.event.id
+						setPrompt(null)
+					}}
 					className="ml-4"
 				>
 					Batal

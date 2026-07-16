@@ -1,4 +1,14 @@
-import type { IqamahIntervals, PrayerTimes } from "~/contexts/PrayerContext"
+import {
+	defaultPrayerSettings,
+	type IqamahIntervals,
+	type PrayerTimes,
+} from "./prayerDomain"
+import {
+	addZonedCalendarDays,
+	formatZonedClock,
+	getZonedDateParts,
+	prayerTimeEpochForDate,
+} from "./zonedTime"
 
 export type IqamahPrayerKey = keyof IqamahIntervals
 
@@ -6,8 +16,8 @@ type PrayerScheduleItem = {
 	key: IqamahPrayerKey
 	name: string
 	time: string
-	adhanSeconds: number
-	iqamahSeconds: number
+	adhanEpochMs: number
+	iqamahEpochMs: number
 	iqamahTime: string
 	iqamahIntervalSeconds: number
 }
@@ -31,7 +41,16 @@ export type IqamahRedirectState =
 			countdownSeconds: number
 			prayerKey: IqamahPrayerKey
 			prayerName: string
+			deadlineEpochMs: number
 	  }
+
+export interface IqamahRedirectEvent {
+	id: string
+	prayerKey: IqamahPrayerKey
+	prayerName: string
+	promptStartsAtEpochMs: number
+	deadlineEpochMs: number
+}
 
 const prayerLabels: Record<IqamahPrayerKey, string> = {
 	fajr: "Subuh",
@@ -53,27 +72,15 @@ const prayerAliases: Record<string, IqamahPrayerKey> = {
 	isha: "isha",
 }
 
-function timeToSeconds(time: string) {
-	const [hours, minutes] = time.split(":").map(Number)
-	return hours * 60 * 60 + minutes * 60
-}
-
-function secondsToTime(seconds: number) {
-	const hours = Math.floor(seconds / 3600)
-	const minutes = Math.floor((seconds % 3600) / 60)
-	return `${hours.toString().padStart(2, "0")}:${minutes
-		.toString()
-		.padStart(2, "0")}`
-}
-
-function secondsSinceMidnight(now: Date) {
-	return now.getHours() * 60 * 60 + now.getMinutes() * 60 + now.getSeconds()
-}
-
 function buildIqamahSchedule(
 	prayerTimes: PrayerTimes,
 	iqamahIntervals: IqamahIntervals,
+	now: Date,
+	timeZone: string,
+	dayOffset = 0,
 ): PrayerScheduleItem[] {
+	const currentDate = getZonedDateParts(now, timeZone)
+	const date = addZonedCalendarDays(currentDate, dayOffset)
 	const items: Array<{ key: IqamahPrayerKey; time: string }> = [
 		{ key: "fajr", time: prayerTimes.fajr },
 		{ key: "dhuhr", time: prayerTimes.dhuhr },
@@ -83,17 +90,16 @@ function buildIqamahSchedule(
 	]
 
 	return items.map((item) => {
-		const adhanSeconds = timeToSeconds(item.time)
+		const adhanEpochMs = prayerTimeEpochForDate(item.time, date, timeZone)
 		const iqamahIntervalSeconds = iqamahIntervals[item.key] * 60
-		const iqamahSeconds = adhanSeconds + iqamahIntervalSeconds
-
+		const iqamahEpochMs = adhanEpochMs + iqamahIntervalSeconds * 1000
 		return {
 			key: item.key,
 			name: prayerLabels[item.key],
 			time: item.time,
-			adhanSeconds,
-			iqamahSeconds,
-			iqamahTime: secondsToTime(iqamahSeconds),
+			adhanEpochMs,
+			iqamahEpochMs,
+			iqamahTime: formatZonedClock(new Date(iqamahEpochMs), timeZone),
 			iqamahIntervalSeconds,
 		}
 	})
@@ -105,10 +111,12 @@ function normalizePrayerKey(prayerName: string) {
 
 function toCountdownState(
 	item: PrayerScheduleItem,
-	currentSeconds: number,
+	nowEpochMs: number,
 ): IqamahCountdownState {
-	const timeLeftSeconds = Math.max(0, item.iqamahSeconds - currentSeconds)
-
+	const timeLeftSeconds = Math.max(
+		0,
+		Math.ceil((item.iqamahEpochMs - nowEpochMs) / 1000),
+	)
 	return {
 		status: timeLeftSeconds === 0 ? "iqamah" : "countdown",
 		prayerKey: item.key,
@@ -125,39 +133,73 @@ export function getIqamahCountdownState({
 	iqamahIntervals,
 	now = new Date(),
 	prayerName,
+	timeZone = defaultPrayerSettings.timezonestring,
 }: {
 	prayerTimes: PrayerTimes
 	iqamahIntervals: IqamahIntervals
 	now?: Date
 	prayerName?: string
+	timeZone?: string
 }): IqamahCountdownState {
-	const currentSeconds = secondsSinceMidnight(now)
-	const schedule = buildIqamahSchedule(prayerTimes, iqamahIntervals)
+	const schedule = buildIqamahSchedule(
+		prayerTimes,
+		iqamahIntervals,
+		now,
+		timeZone,
+	)
+	const nowEpochMs = now.getTime()
 
 	if (prayerName) {
 		const prayerKey = normalizePrayerKey(prayerName)
 		const item = schedule.find((prayer) => prayer.key === prayerKey)
-
-		if (!item) {
+		if (
+			!item ||
+			nowEpochMs < item.adhanEpochMs ||
+			nowEpochMs > item.iqamahEpochMs
+		) {
 			return { status: "inactive" }
 		}
-
-		if (currentSeconds > item.iqamahSeconds) {
-			return { status: "inactive" }
-		}
-
-		return toCountdownState(item, currentSeconds)
+		return toCountdownState(item, nowEpochMs)
 	}
 
 	const activePrayer = schedule.find(
 		(prayer) =>
-			currentSeconds >= prayer.adhanSeconds &&
-			currentSeconds <= prayer.iqamahSeconds,
+			nowEpochMs >= prayer.adhanEpochMs && nowEpochMs <= prayer.iqamahEpochMs,
 	)
-
 	return activePrayer
-		? toCountdownState(activePrayer, currentSeconds)
+		? toCountdownState(activePrayer, nowEpochMs)
 		: { status: "inactive" }
+}
+
+export function getNextIqamahRedirectEvent({
+	prayerTimes,
+	iqamahIntervals,
+	now = new Date(),
+	redirectDelaySeconds,
+	timeZone = defaultPrayerSettings.timezonestring,
+}: {
+	prayerTimes: PrayerTimes
+	iqamahIntervals: IqamahIntervals
+	now?: Date
+	redirectDelaySeconds: number
+	timeZone?: string
+}): IqamahRedirectEvent {
+	const schedule = [
+		...buildIqamahSchedule(prayerTimes, iqamahIntervals, now, timeZone),
+		...buildIqamahSchedule(prayerTimes, iqamahIntervals, now, timeZone, 1),
+	]
+	const prayer = schedule.find((item) => item.iqamahEpochMs > now.getTime())
+	if (!prayer) {
+		throw new Error("Unable to calculate the next iqamah event")
+	}
+	return {
+		id: `${prayer.key}:${prayer.iqamahEpochMs}`,
+		prayerKey: prayer.key,
+		prayerName: prayer.name,
+		promptStartsAtEpochMs:
+			prayer.iqamahEpochMs - Math.max(0, redirectDelaySeconds) * 1000,
+		deadlineEpochMs: prayer.iqamahEpochMs,
+	}
 }
 
 export function getIqamahRedirectState({
@@ -165,27 +207,27 @@ export function getIqamahRedirectState({
 	iqamahIntervals,
 	now = new Date(),
 	redirectDelaySeconds,
+	timeZone = defaultPrayerSettings.timezonestring,
 }: {
 	prayerTimes: PrayerTimes
 	iqamahIntervals: IqamahIntervals
 	now?: Date
 	redirectDelaySeconds: number
+	timeZone?: string
 }): IqamahRedirectState {
-	const currentSeconds = secondsSinceMidnight(now)
-	const schedule = buildIqamahSchedule(prayerTimes, iqamahIntervals)
-
-	for (const prayer of schedule) {
-		const countdownSeconds = prayer.iqamahSeconds - currentSeconds
-
-		if (countdownSeconds <= redirectDelaySeconds && countdownSeconds > 0) {
-			return {
-				status: "prompt",
-				countdownSeconds,
-				prayerKey: prayer.key,
-				prayerName: prayer.name,
-			}
-		}
+	const event = getNextIqamahRedirectEvent({
+		prayerTimes,
+		iqamahIntervals,
+		now,
+		redirectDelaySeconds,
+		timeZone,
+	})
+	if (now.getTime() < event.promptStartsAtEpochMs) return { status: "inactive" }
+	return {
+		status: "prompt",
+		countdownSeconds: Math.ceil((event.deadlineEpochMs - now.getTime()) / 1000),
+		prayerKey: event.prayerKey,
+		prayerName: event.prayerName,
+		deadlineEpochMs: event.deadlineEpochMs,
 	}
-
-	return { status: "inactive" }
 }
